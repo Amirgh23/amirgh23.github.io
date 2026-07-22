@@ -17,3 +17,35 @@
 
 .contact-channels{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:30px}.contact-channels>a{position:relative;min-height:76px;padding:15px 18px;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(7,11,24,.98),rgba(5,8,22,.9));border:1px solid rgba(0,247,255,.25);clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));transition:border-color .2s,color .2s,background .2s}.contact-channels>a:nth-child(2){border-color:rgba(139,92,246,.42)}.contact-channels>a:nth-child(3){border-color:rgba(255,43,214,.42)}.contact-channels>a:hover,.contact-channels>a:focus-visible{color:var(--cyan);border-color:var(--cyan);background:rgba(0,247,255,.055);outline:0}.contact-channels>a:nth-child(3):hover,.contact-channels>a:nth-child(3):focus-visible{color:var(--pink);border-color:var(--pink);background:rgba(255,43,214,.055)}.contact-channels svg{width:19px;height:19px;flex:0 0 auto;color:currentColor}.contact-channels span{margin:0}.contact-channels i,.contact-channels strong{display:block;font-family:'Share Tech Mono';font-style:normal}.contact-channels i{margin-bottom:6px;color:var(--muted);font-size:8px;letter-spacing:.18em}.contact-channels strong{color:var(--text);font-size:11px;font-weight:400;letter-spacing:.06em}.contact-channels>a:hover strong,.contact-channels>a:focus-visible strong{color:currentColor}
 @media(max-width:760px){.contact-channels{grid-template-columns:1fr}.contact-channels>a{min-height:68px}}@media(max-width:560px){footer{align-items:start}.contact-channels{margin-top:8px}}
+
+/* Keep the portrait's neon shell and corner markers inside one cyberpunk cut. */
+.portrait-frame{
+  overflow:hidden;
+  isolation:isolate;
+  background:linear-gradient(130deg,var(--cyan),#172033 32%,#172033 68%,var(--pink));
+}
+.portrait-frame::before{
+  inset:2px;
+  z-index:0;
+  background:#070b18;
+  clip-path:polygon(10% 0,90% 0,100% 10%,100% 90%,90% 100%,10% 100%,0 90%,0 10%);
+}
+.portrait-frame img{
+  position:relative;
+  z-index:1;
+  display:block;
+  clip-path:polygon(9% 0,91% 0,100% 9%,100% 91%,91% 100%,9% 100%,0 91%,0 9%);
+}
+.portrait-frame::after,.portrait-grid{z-index:2}
+.corner{
+  width:36px;
+  height:36px;
+  border:0!important;
+  background:var(--pink);
+  clip-path:polygon(0 78%,78% 0,100% 0,100% 8%,82% 8%,8% 82%,8% 100%,0 100%);
+  filter:drop-shadow(0 0 5px rgba(255,43,214,.8));
+}
+.corner.tl{left:0;top:0}
+.corner.tr{right:0;top:0;transform:rotate(90deg)}
+.corner.br{right:0;bottom:0;transform:rotate(180deg)}
+.corner.bl{left:0;bottom:0;transform:rotate(270deg)}
