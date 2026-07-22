@@ -237,7 +237,7 @@ function Terminal({ open, onClose }) {
     const output = {
       help: 'COMMANDS: about · experience · projects · skills · education · contact · clear',
       about: 'AMIRGH23 // AI Agent Engineer // Full-Stack Developer // Mashhad, Iran',
-      experience: 'PARSEH PARDAZ NIK DANESH // 15+ INTERNATIONAL WEB COLLABORATIONS // 10+ RECENT CODE PROJECTS',
+      experience: '10 YEARS PROGRAMMING // 7 YEARS FRONTEND & WEB APPS // 7 YEARS ARTIFICIAL INTELLIGENCE',
       projects: projects.map((project) => `${project.id}: ${project.title}`).join('  |  '),
       skills: 'REACT · NEXT.JS · TYPESCRIPT · ANGULAR · MONGODB · POSTGRESQL · WORDPRESS · PYTHON · PYTORCH · OPENCV',
       education: 'M.Sc. AI & ROBOTICS // COMPLETED 2026',
@@ -293,10 +293,10 @@ export default function App() {
           <p>AI agents, full-stack systems and high-impact interfaces — engineered from research core to production surface.</p>
           <div className="hero-actions"><a href="#experience">OPEN EXPERIENCE LOG <Power /></a><button onClick={() => setTerminal(true)}>OPEN TERMINAL <TerminalIcon /></button></div>
           <div className="metrics career-metrics">
-            <div><b>7+</b><span>YEARS PROGRAMMING</span></div>
-            <div><b>5+</b><span>YEARS FRONTEND</span></div>
+            <div><b>10</b><span>YEARS PROGRAMMING</span></div>
+            <div><b>7</b><span>YEARS FRONTEND &amp; WEB APPS</span></div>
+            <div><b>7</b><span>YEARS ARTIFICIAL INTELLIGENCE</span></div>
             <div><b>15+</b><span>COMPANY COLLABS</span></div>
-            <div><b>10+</b><span>RECENT CODE PROJECTS</span></div>
           </div>
         </div>
         <div className="core-wrap">
@@ -343,8 +343,8 @@ export default function App() {
       <section id="skills" className="stack-matrix">
         <div className="section-head"><span>02 // VERIFIED TOOLCHAIN</span><h2>FULL-STACK SKILL MATRIX</h2></div>
         <div className="stack-summary">
-          <div><Code2 /><b>FRONTEND</b><span>5+ YEARS</span></div>
-          <div><Database /><b>FULL STACK</b><span>DATA + APIs</span></div>
+          <div><Code2 /><b>FRONTEND</b><span>7 YEARS · WEB APPS</span></div>
+          <div><Database /><b>AI + FULL STACK</b><span>7 YEARS AI · DATA + APIs</span></div>
           <div><Globe2 /><b>WEB DELIVERY</b><span>15+ COMPANIES</span></div>
         </div>
         <div className="skill-console" role="table" aria-label="Engineering skills matrix">
