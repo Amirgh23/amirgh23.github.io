@@ -100,7 +100,8 @@ const experience = [
     role: 'AI AGENT ENGINEER & FULL-STACK DEVELOPER',
     company: 'PARSEH PARDAZ NIK DANESH',
     location: 'MASHHAD · IRAN',
-    description: 'Engineering agentic AI capabilities and full-stack software products across intelligent workflows, application logic, data systems and production interfaces.',
+    website: 'https://ppnd.ir/',
+    description: 'Engineering agentic AI capabilities and full-stack software products for an integrated human-resources management company across intelligent workflows, application logic, data systems and production interfaces.',
     tags: ['AI AGENTS', 'FULL STACK', 'PRODUCT ENGINEERING'],
   },
   {
@@ -359,7 +360,7 @@ export default function App() {
         <div className="experience-layout">
           <div className="timeline">{experience.map((item, index) => <motion.article key={`${item.company}-${item.period}`} initial={reduceMotion ? false : { opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="timeline-index">{String(index + 1).padStart(2, '0')}</div>
-            <div className="timeline-copy"><small>{item.period} // {item.location}</small><h3>{item.role}</h3><h4>{item.company}</h4><p>{item.description}</p><div>{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
+            <div className="timeline-copy"><small>{item.period} // {item.location}</small><h3>{item.role}</h3><h4>{item.website ? <a href={item.website} target="_blank" rel="noreferrer">{item.company} <span>↗</span></a> : item.company}</h4><p>{item.description}</p><div>{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
           </motion.article>)}</div>
           <aside className="career-side">
             <div className="career-stat"><Globe2 /><b>15+</b><span>COMPANIES COLLABORATED WITH ACROSS AUSTRALIA, USA &amp; IRAN</span></div>

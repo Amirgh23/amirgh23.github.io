@@ -84,6 +84,7 @@
 .timeline-copy>small{font:8px 'Share Tech Mono';letter-spacing:.13em;color:var(--cyan)}
 .timeline-copy h3{font-size:17px;margin:12px 0 6px;letter-spacing:.02em}
 .timeline-copy h4{font:10px 'Share Tech Mono';color:#a28fba;margin:0 0 14px}
+.timeline-copy h4 a{display:inline-flex;align-items:center;gap:8px;color:#a28fba;transition:color .2s ease}.timeline-copy h4 a span{color:var(--cyan);font-size:13px}.timeline-copy h4 a:hover,.timeline-copy h4 a:focus-visible{color:var(--cyan);outline:0}
 .timeline-copy p{color:#7e92aa;font-size:12px;line-height:1.7;margin:0 0 17px}
 .timeline-copy>div{display:flex;flex-wrap:wrap;gap:7px}
 .timeline-copy>div span{padding:5px 7px;border:1px solid rgba(255,43,214,.2);color:#bf8bb5;font:8px 'Share Tech Mono'}
