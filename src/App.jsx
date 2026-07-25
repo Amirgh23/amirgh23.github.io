@@ -25,6 +25,7 @@ const palette = ['#00f7ff', '#ff2bd6', '#8b5cf6', '#ff304f', '#39ff14'];
 
 const projects = [
   ['amirgh23.github.io', 'MER23LIN INTERFACE', 'JavaScript', 'Interactive MER23LIN — autonomous intelligence command center', 0],
+  ['whiplash-mode', 'WHIPLASH MODE', 'JavaScript', 'A playful local focus whip for developers who opened one file too many', 0],
   ['Amirgh23', 'PROFILE COMMAND NODE', 'JavaScript', 'Cyberpunk GitHub profile — AI, full-stack engineering and robotics from Mashhad', 0],
   ['gold-trading-bot', 'AUTONOMOUS MARKET AGENT', 'Python', 'Production-grade XAUUSD trading bot with multi-strategy ensemble and advanced risk management', 3],
   ['special-date', 'TEMPORAL INTERFACE', 'SCSS', 'Experimental date-focused interface system', 2],
