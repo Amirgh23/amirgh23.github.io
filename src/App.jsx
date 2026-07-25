@@ -237,7 +237,7 @@ function Terminal({ open, onClose }) {
     const output = {
       help: 'COMMANDS: about · experience · projects · skills · education · contact · clear',
       about: 'AMIRGH23 // AI Agent Engineer // Full-Stack Developer // Mashhad, Iran',
-      experience: '10 YEARS PROGRAMMING // 7 YEARS FRONTEND & WEB APPS // 7 YEARS ARTIFICIAL INTELLIGENCE',
+      experience: '10 YEARS PROGRAMMING // 7 YEARS FRONTEND & ARTIFICIAL INTELLIGENCE',
       projects: projects.map((project) => `${project.id}: ${project.title}`).join('  |  '),
       skills: 'REACT · NEXT.JS · TYPESCRIPT · ANGULAR · MONGODB · POSTGRESQL · WORDPRESS · PYTHON · PYTORCH · OPENCV',
       education: 'M.Sc. AI & ROBOTICS // COMPLETED 2026',
@@ -294,8 +294,7 @@ export default function App() {
           <div className="hero-actions"><a href="#experience">OPEN EXPERIENCE LOG <Power /></a><button onClick={() => setTerminal(true)}>OPEN TERMINAL <TerminalIcon /></button></div>
           <div className="metrics career-metrics">
             <div><b>10</b><span>YEARS PROGRAMMING</span></div>
-            <div><b>7</b><span>YEARS FRONTEND &amp; WEB APPS</span></div>
-            <div><b>7</b><span>YEARS ARTIFICIAL INTELLIGENCE</span></div>
+            <div><b>7</b><span>YEARS FRONTEND &amp; ARTIFICIAL INTELLIGENCE</span></div>
             <div><b>15+</b><span>COMPANY COLLABS</span></div>
           </div>
         </div>
@@ -344,7 +343,7 @@ export default function App() {
         <div className="section-head"><span>02 // VERIFIED TOOLCHAIN</span><h2>FULL-STACK SKILL MATRIX</h2></div>
         <div className="stack-summary">
           <div><Code2 /><b>FRONTEND</b><span>7 YEARS · WEB APPS</span></div>
-          <div><Database /><b>AI + FULL STACK</b><span>7 YEARS AI · DATA + APIs</span></div>
+          <div><Database /><b>FRONTEND + AI</b><span>7 YEARS · DATA + APIs</span></div>
           <div><Globe2 /><b>WEB DELIVERY</b><span>15+ COMPANIES</span></div>
         </div>
         <div className="skill-console" role="table" aria-label="Engineering skills matrix">
