@@ -18,10 +18,21 @@
 .contact-channels{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:30px}.contact-channels>a{position:relative;min-height:76px;padding:15px 18px;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(7,11,24,.98),rgba(5,8,22,.9));border:1px solid rgba(0,247,255,.25);clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));transition:border-color .2s,color .2s,background .2s}.contact-channels>a:nth-child(2){border-color:rgba(139,92,246,.42)}.contact-channels>a:nth-child(3){border-color:rgba(255,43,214,.42)}.contact-channels>a:hover,.contact-channels>a:focus-visible{color:var(--cyan);border-color:var(--cyan);background:rgba(0,247,255,.055);outline:0}.contact-channels>a:nth-child(3):hover,.contact-channels>a:nth-child(3):focus-visible{color:var(--pink);border-color:var(--pink);background:rgba(255,43,214,.055)}.contact-channels svg{width:19px;height:19px;flex:0 0 auto;color:currentColor}.contact-channels span{margin:0}.contact-channels i,.contact-channels strong{display:block;font-family:'Share Tech Mono';font-style:normal}.contact-channels i{margin-bottom:6px;color:var(--muted);font-size:8px;letter-spacing:.18em}.contact-channels strong{color:var(--text);font-size:11px;font-weight:400;letter-spacing:.06em}.contact-channels>a:hover strong,.contact-channels>a:focus-visible strong{color:currentColor}
 @media(max-width:760px){.contact-channels{grid-template-columns:1fr}.contact-channels>a{min-height:68px}}@media(max-width:560px){footer{align-items:start}.contact-channels{margin-top:8px}}
 
-/* Controlled neon flicker for the manifesto and footer uplinks. */
-.manifesto h2{
-  animation:neon-title-flicker 5.8s steps(1,end) infinite;
+/* Per-character neon circuitry for the manifesto and footer uplinks. */
+.neon-letters>span{display:inline-block;will-change:opacity,filter,text-shadow,transform}
+.neon-letters>.neon-space{width:.28em}
+.manifesto h2.neon-letters>span:not(.neon-space){
+  color:transparent;
+  -webkit-text-stroke:1px var(--pink);
+  animation:neon-char-a 5.7s steps(1,end) var(--char-delay) infinite;
 }
+.manifesto h2.neon-letters>span:nth-child(3n+2){animation-name:neon-char-b;-webkit-text-stroke-color:var(--cyan)}
+.manifesto h2.neon-letters>span:nth-child(4n){animation-name:neon-char-c}
+.contact-channels .neon-letters>span:not(.neon-space){
+  color:inherit;
+  animation:neon-contact-char 5.7s steps(1,end) var(--char-delay) infinite;
+}
+.contact-channels .neon-letters>span:nth-child(3n+2){animation-name:neon-contact-char-alt}
 .contact-channels>a,
 .socials a{
   animation:neon-uplink-flicker 6.4s steps(1,end) infinite;
@@ -48,15 +59,44 @@
   color:var(--pink);
   box-shadow:0 0 16px rgba(255,43,214,.13),inset 0 0 14px rgba(255,43,214,.035);
 }
+.socials svg{position:relative;z-index:1;animation:neon-icon-flicker 4.9s steps(1,end) infinite;filter:drop-shadow(0 0 4px currentColor)}
+.socials a:nth-child(2) svg{animation-delay:-2.35s}
 .contact-channels>a:hover,.contact-channels>a:focus-visible,
 .socials a:hover,.socials a:focus-visible{
   animation-play-state:paused;
   filter:brightness(1.35);
 }
-@keyframes neon-title-flicker{
-  0%,8%,11%,53%,56%,100%{opacity:1;text-shadow:0 0 17px rgba(255,43,214,.42),0 0 42px rgba(255,43,214,.24)}
-  9%,54%{opacity:.58;text-shadow:0 0 5px rgba(255,43,214,.16)}
-  10%,55%{opacity:.82;text-shadow:0 0 26px rgba(0,247,255,.3),0 0 52px rgba(255,43,214,.36)}
+.contact-channels>a:hover .neon-letters>span,.contact-channels>a:focus-visible .neon-letters>span,
+.socials a:hover svg,.socials a:focus-visible svg{animation-play-state:paused}
+@keyframes neon-char-a{
+  0%,7%,9%,41%,44%,82%,100%{opacity:1;filter:brightness(1.12);text-shadow:0 0 10px rgba(255,43,214,.82),0 0 28px rgba(255,43,214,.45);transform:translateY(0)}
+  8%,42%{opacity:.12;filter:brightness(.42);text-shadow:none;transform:translateY(1px)}
+  43%,83%{opacity:.72;filter:brightness(1.75);text-shadow:0 0 15px var(--cyan),0 0 38px var(--pink)}
+}
+@keyframes neon-char-b{
+  0%,18%,21%,63%,66%,100%{opacity:1;filter:brightness(1.05);text-shadow:0 0 9px rgba(0,247,255,.8),0 0 25px rgba(0,247,255,.4)}
+  19%,64%{opacity:.2;filter:brightness(.5);text-shadow:none}
+  20%,65%{opacity:.86;filter:brightness(1.8);text-shadow:0 0 14px var(--cyan),0 0 34px var(--cyan)}
+}
+@keyframes neon-char-c{
+  0%,30%,34%,74%,77%,100%{opacity:1;filter:brightness(1);text-shadow:0 0 9px rgba(255,43,214,.78)}
+  31%,33%,75%{opacity:.28;filter:brightness(.55);text-shadow:none;transform:translateX(-1px)}
+  32%,76%{opacity:1;filter:brightness(2);text-shadow:0 0 17px var(--pink),0 0 40px var(--cyan);transform:translateX(0)}
+}
+@keyframes neon-contact-char{
+  0%,24%,27%,72%,74%,100%{opacity:1;filter:brightness(1);text-shadow:0 0 5px rgba(0,247,255,.36)}
+  25%,73%{opacity:.3;filter:brightness(.55);text-shadow:none}
+  26%{opacity:.9;filter:brightness(1.7);text-shadow:0 0 9px var(--cyan),0 0 20px rgba(0,247,255,.45)}
+}
+@keyframes neon-contact-char-alt{
+  0%,37%,40%,88%,90%,100%{opacity:1;filter:brightness(1);text-shadow:0 0 4px rgba(255,43,214,.28)}
+  38%,89%{opacity:.35;filter:brightness(.62);text-shadow:none}
+  39%{opacity:1;filter:brightness(1.65);text-shadow:0 0 8px var(--pink),0 0 18px rgba(255,43,214,.42)}
+}
+@keyframes neon-icon-flicker{
+  0%,15%,18%,59%,62%,100%{opacity:1;transform:scale(1);filter:drop-shadow(0 0 4px currentColor)}
+  16%,60%{opacity:.28;transform:scale(.96);filter:none}
+  17%,61%{opacity:1;transform:scale(1.04);filter:drop-shadow(0 0 10px currentColor)}
 }
 @keyframes neon-uplink-flicker{
   0%,13%,15%,68%,71%,100%{opacity:1;filter:brightness(1);box-shadow:0 0 16px rgba(0,247,255,.13),inset 0 0 14px rgba(0,247,255,.035)}
