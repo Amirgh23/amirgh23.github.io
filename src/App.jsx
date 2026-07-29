@@ -23,17 +23,6 @@ import * as THREE from 'three';
 
 const palette = ['#00f7ff', '#ff2bd6', '#8b5cf6', '#ff304f', '#39ff14'];
 
-function NeonFlickerText({ as: Tag = 'span', text, seed = 0, className = '' }) {
-  return <Tag className={`neon-letters ${className}`.trim()} aria-label={text}>
-    {[...text].map((character, index) => <span
-      aria-hidden="true"
-      className={character === ' ' ? 'neon-space' : undefined}
-      key={`${character}-${index}`}
-      style={{ '--char-index': index, '--char-delay': `${-((index * 0.37 + seed) % 5.7)}s`, '--char-tone': (index + seed) % 3 }}
-    >{character === ' ' ? '\u00a0' : character}</span>)}
-  </Tag>;
-}
-
 const projects = [
   ['amirgh23.github.io', 'MER23LIN INTERFACE', 'JavaScript', 'Interactive MER23LIN — autonomous intelligence command center', 0],
   ['whiplash-mode', 'WHIPLASH MODE', 'JavaScript', 'A playful local focus whip for developers who opened one file too many', 0],
@@ -391,13 +380,13 @@ export default function App() {
         {filteredProjects.length === 0 && <div className="empty-network">NO MATCHING NODE // MODIFY SEARCH SIGNAL</div>}
       </section>
 
-      <section className="manifesto"><Radio /><p>THE FUTURE IS NOT PREDICTED.</p><NeonFlickerText as="h2" text="IT IS ENGINEERED." /><span>— AMIRGH23 // MER23LIN</span></section>
+      <section className="manifesto"><Radio /><p>THE FUTURE IS NOT PREDICTED.</p><h2>IT IS ENGINEERED.</h2><span>— AMIRGH23 // MER23LIN</span></section>
     </main>
 
     <footer id="contact">
       <div><b>ESTABLISH UPLINK</b><span>Available for AI, full-stack, frontend and ambitious web collaborations.</span></div>
       <div className="socials"><a href="https://github.com/Amirgh23" target="_blank" rel="noreferrer" aria-label="GitHub"><Github /></a><a href="https://www.linkedin.com/in/amirreza-ghaffarian-nokhodi-55371020b" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Linkedin /></a></div>
-      <div className="contact-channels"><a href="tel:+989152389023" aria-label="Call +98 915 238 9023"><Phone /><span><NeonFlickerText as="i" text="DIRECT LINE" seed={1} /><NeonFlickerText as="strong" text="+98 915 238 9023" seed={2} /></span></a><a href="https://t.me/ARGHN23" target="_blank" rel="noreferrer" aria-label="Telegram ARGHN23"><Send /><span><NeonFlickerText as="i" text="TELEGRAM" seed={3} /><NeonFlickerText as="strong" text="@ARGHN23" seed={4} /></span></a><a href="https://www.instagram.com/amir_.gh23" target="_blank" rel="noreferrer" aria-label="Instagram amir_.gh23"><Instagram /><span><NeonFlickerText as="i" text="INSTAGRAM" seed={5} /><NeonFlickerText as="strong" text="@amir_.gh23" seed={6} /></span></a></div>
+      <div className="contact-channels"><a href="tel:+989152389023" aria-label="Call +98 915 238 9023"><Phone /><span><i>DIRECT LINE</i><strong>+98 915 238 9023</strong></span></a><a href="https://t.me/ARGHN23" target="_blank" rel="noreferrer" aria-label="Telegram ARGHN23"><Send /><span><i>TELEGRAM</i><strong>@ARGHN23</strong></span></a><a href="https://www.instagram.com/amir_.gh23" target="_blank" rel="noreferrer" aria-label="Instagram amir_.gh23"><Instagram /><span><i>INSTAGRAM</i><strong>@amir_.gh23</strong></span></a></div>
       <small>© 2026 AMIRGH23 · MER23LIN OMEGA CHANNEL</small>
     </footer>
     <Terminal open={terminal} onClose={() => setTerminal(false)} />
