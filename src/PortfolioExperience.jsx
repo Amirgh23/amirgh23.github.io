@@ -35,7 +35,7 @@ function BootSequence({ done }) {
       <div className="boot__readout">NEURAL FACILITY // VISITOR BOOT</div>
       {lines.map((line, index) => <p key={line} className={index < step ? 'is-ready' : ''}><b>0{index + 1}</b>{line}<span>{index < step ? 'ONLINE' : 'WAIT'}</span></p>)}
       <div className="boot__bar"><i style={{ width: `${step / lines.length * 100}%` }} /></div>
-      <small>SELECT A NODE · WHEEL / SWIPE / J K · NO AUDIO REQUIRED</small>
+      <small>SCROLL TO DRIVE · SWIPE / J K TO JUMP · NO AUDIO REQUIRED</small>
     </div>
   </motion.div>;
 }
@@ -106,7 +106,7 @@ function CityRain({ reduced }) {
   return <points ref={ref}><bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]} /></bufferGeometry><pointsMaterial color="#9eefff" size={.025} transparent opacity={.34} depthWrite={false} /></points>;
 }
 
-function NightCity({ active, reduced }) {
+function NightCity({ active, reduced, travel }) {
   const rig = useRef();
   const buildings = useMemo(() => {
     let seed = 23;
@@ -122,10 +122,12 @@ function NightCity({ active, reduced }) {
   const cameraTargets = [[0, .7, 8.8], [1.5, 1.1, 7.4], [-1.35, 1.45, 7.8], [1.15, .55, 7.2], [-1.1, .65, 7.5], [.9, 1.35, 7], [0, .85, 6.6]];
   useFrame((state) => {
     const target = reduced ? cameraTargets[0] : cameraTargets[active];
+    const journey = reduced ? active / (stations.length - 1) : travel.current;
+    const targetZ = 8.8 - journey * 48;
     state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, target[0], .03);
     state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, target[1], .03);
-    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, target[2], .03);
-    state.camera.lookAt(0, -.55, -18);
+    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, .045);
+    state.camera.lookAt(target[0] * .12, -.55, targetZ - 20);
     if (rig.current) rig.current.position.x = THREE.MathUtils.lerp(rig.current.position.x, (active - 3) * -.16, .025);
   });
   return <group ref={rig}>
@@ -150,17 +152,17 @@ function NightCity({ active, reduced }) {
   </group>;
 }
 
-function Facility({ active, reduced }) {
-  return <NightCity active={active} reduced={reduced} />;
+function Facility({ active, reduced, travel }) {
+  return <NightCity active={active} reduced={reduced} travel={travel} />;
 }
 
-function World({ active, reduced }) {
+function World({ active, reduced, travel }) {
   return <div className="world night-city" aria-hidden="true"><Canvas camera={{ position: [0, .7, 8.8], fov: 52 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-    <Suspense fallback={null}><Facility active={active} reduced={reduced} /></Suspense>
+    <Suspense fallback={null}><Facility active={active} reduced={reduced} travel={travel} /></Suspense>
   </Canvas></div>;
 }
 
-function Hud({ active, menu, setMenu, navigate }) {
+function Hud({ active, menu, setMenu, navigate, cityProgress }) {
   const station = stations[active];
   const travelTo = (event, index) => {
     event.preventDefault();
@@ -170,7 +172,7 @@ function Hud({ active, menu, setMenu, navigate }) {
   return <>
     <header className="hud-top">
       <a href="#entry" className="mark">MER<span>23</span>LIN<small>AUTONOMOUS PORTFOLIO</small></a>
-      <div className="telemetry"><i /> FACILITY ONLINE <span>{station.signal} // NODE-{station.code}</span></div>
+      <div className="telemetry"><i /> FACILITY ONLINE <span>{station.signal} // KM-{String(Math.round(cityProgress * 4200)).padStart(4, '0')}</span></div>
       <button onClick={() => setMenu(!menu)} aria-label={menu ? 'Close navigation' : 'Open navigation'}>{menu ? <X /> : <Menu />}</button>
     </header>
     <nav className={`rail ${menu ? 'is-open' : ''}`} aria-label="Portfolio sections">
@@ -180,10 +182,10 @@ function Hud({ active, menu, setMenu, navigate }) {
     <div className="flight-deck" aria-live="polite">
       <div className="flight-deck__station"><small>CURRENT STATION</small><b>{station.code} // {station.label}</b></div>
       <button className="flight-deck__step" onClick={() => navigate(active - 1)} disabled={active === 0} aria-label="Previous station"><ArrowLeft /></button>
-      <div className="flight-deck__route">{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
+      <div className="flight-deck__route" style={{ '--city-progress': `${cityProgress * 100}%` }}>{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
       <div className="flight-deck__percent">{String(active + 1).padStart(2, '0')}<small>/ {String(stations.length).padStart(2, '0')} NODES</small></div>
       <button className="flight-deck__step" onClick={() => navigate(active + 1)} disabled={active === stations.length - 1} aria-label="Next station"><ArrowRight /></button>
-      <div className="flight-deck__keys">WHEEL · SWIPE · J / K</div>
+      <div className="flight-deck__keys">SCROLL: DRIVE · SHIFT+SCROLL: PANEL</div>
     </div>
   </>;
 }
@@ -252,20 +254,48 @@ function Terminal({ open, close, projects }) {
 }
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
-  const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1);
-  const activeRef = useRef(0), wheelLock = useRef(false), touchStart = useRef(null); const reduced = useReducedMotion();
+  const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1), [cityProgress, setCityProgress] = useState(0);
+  const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null); const reduced = useReducedMotion();
   const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
   const navigate = (next) => {
     const bounded = Math.max(0, Math.min(stations.length - 1, next));
-    if (bounded === activeRef.current) return;
-    setDirection(bounded > activeRef.current ? 1 : -1);
-    activeRef.current = bounded;
-    setActive(bounded);
-    history.replaceState(null, '', `#${stations[bounded].id}`);
+    const targetProgress = bounded / (stations.length - 1);
+    const maxScroll = document.documentElement.scrollHeight - innerHeight;
+    travelRef.current = targetProgress;
+    setCityProgress(targetProgress);
+    if (bounded !== activeRef.current) {
+      setDirection(bounded > activeRef.current ? 1 : -1);
+      activeRef.current = bounded;
+      setActive(bounded);
+      history.replaceState(null, '', `#${stations[bounded].id}`);
+    }
+    scrollTo({ top: maxScroll * targetProgress, behavior: 'auto' });
   };
   useEffect(() => {
     const initial = stations.findIndex((station) => `#${station.id}` === location.hash);
-    if (initial > 0) { activeRef.current = initial; setActive(initial); }
+    const initialProgress = initial > 0 ? initial / (stations.length - 1) : 0;
+    if (initial > 0) {
+      activeRef.current = initial; travelRef.current = initialProgress; setActive(initial); setCityProgress(initialProgress);
+    }
+    const syncCityToScroll = () => {
+      const maxScroll = document.documentElement.scrollHeight - innerHeight;
+      const nextProgress = maxScroll > 0 ? THREE.MathUtils.clamp(scrollY / maxScroll, 0, 1) : 0;
+      travelRef.current = nextProgress;
+      setCityProgress(nextProgress);
+      const nextStation = Math.round(nextProgress * (stations.length - 1));
+      if (nextStation !== activeRef.current) {
+        setDirection(nextStation > activeRef.current ? 1 : -1);
+        activeRef.current = nextStation;
+        setActive(nextStation);
+        history.replaceState(null, '', `#${stations[nextStation].id}`);
+      }
+    };
+    requestAnimationFrame(() => {
+      scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * initialProgress, behavior: 'auto' });
+      syncCityToScroll();
+    });
+    addEventListener('scroll', syncCityToScroll, { passive: true });
+    return () => removeEventListener('scroll', syncCityToScroll);
   }, []);
   useEffect(() => {
     const onKey = (event) => {
@@ -276,15 +306,20 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       navigate(activeRef.current + (['j', 'arrowright', 'pagedown'].includes(key) ? 1 : -1));
     };
     const onWheel = (event) => {
-      const scrollable = event.target.closest('.chapter__panel,.node-grid,.terminal__lines');
-      if (scrollable) {
-        const canContinue = event.deltaY > 0 ? scrollable.scrollTop + scrollable.clientHeight < scrollable.scrollHeight - 2 : scrollable.scrollTop > 2;
+      if (terminal && event.target.closest('.terminal')) return;
+      const nested = event.target.closest('.node-grid,.terminal__lines');
+      if (nested) {
+        const canContinue = event.deltaY > 0 ? nested.scrollTop + nested.clientHeight < nested.scrollHeight - 2 : nested.scrollTop > 2;
         if (canContinue) return;
       }
-      if (Math.abs(event.deltaY) < 28 || wheelLock.current) return;
-      wheelLock.current = true;
-      navigate(activeRef.current + (event.deltaY > 0 ? 1 : -1));
-      setTimeout(() => { wheelLock.current = false; }, 720);
+      const panel = event.target.closest('.chapter__panel');
+      if (event.shiftKey && panel) {
+        event.preventDefault();
+        panel.scrollTop += event.deltaY;
+        return;
+      }
+      event.preventDefault();
+      scrollTo({ top: scrollY + event.deltaY * .72, behavior: 'auto' });
     };
     const onTouchStart = (event) => { touchStart.current = event.touches[0]?.clientX ?? null; };
     const onTouchEnd = (event) => {
@@ -293,14 +328,14 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       if (Math.abs(delta) > 55) navigate(activeRef.current + (delta > 0 ? 1 : -1));
       touchStart.current = null;
     };
-    addEventListener('keydown', onKey); addEventListener('wheel', onWheel, { passive: true });
+    addEventListener('keydown', onKey); addEventListener('wheel', onWheel, { passive: false });
     addEventListener('touchstart', onTouchStart, { passive: true }); addEventListener('touchend', onTouchEnd, { passive: true });
     return () => { removeEventListener('keydown', onKey); removeEventListener('wheel', onWheel); removeEventListener('touchstart', onTouchStart); removeEventListener('touchend', onTouchEnd); };
   }, [terminal]);
-  return <div className="experience-shell">
+  return <><div className="experience-shell">
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
-    <World active={active} reduced={reduced} /><div className="noise" /><div className="scanlines" /><CursorSignal />
-    <Hud active={active} menu={menu} setMenu={setMenu} navigate={navigate} />
+    <World active={active} reduced={reduced} travel={travelRef} /><div className="noise" /><div className="scanlines" /><CursorSignal />
+    <Hud active={active} menu={menu} setMenu={setMenu} navigate={navigate} cityProgress={cityProgress} />
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <main className="console-stage" data-station={stations[active].code}>
       <Section id="entry" index={0} eyebrow="WELCOME TO THE NEURAL FACILITY" className="hero-chapter" active={active === 0} direction={direction}>
@@ -341,5 +376,5 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       </Section>
     </main>
     <Terminal open={terminal} close={() => setTerminal(false)} projects={projects} />
-  </div>;
+  </div><div className="city-scroll-track" aria-hidden="true" /></>;
 }

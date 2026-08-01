@@ -65,8 +65,7 @@ main{position:relative;z-index:2}.chapter{min-height:118vh;padding:130px clamp(7
 }
 
 /* Mission console: discrete node switching replaces the old scroll journey. */
-html,body,#root{width:100%;height:100%;overflow:hidden}
-.experience-shell{height:100%;overflow:hidden}
+html,#root{width:100%;min-height:100%;overflow-x:hidden}html,body{scrollbar-width:none}body{width:100%;min-height:100%;overflow-x:hidden;overflow-y:auto}.experience-shell{position:fixed;z-index:1;inset:0;height:100%;overflow:hidden}.city-scroll-track{position:relative;z-index:0;width:1px;height:700vh;pointer-events:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
 .console-stage{position:fixed;z-index:2;inset:74px 0 0;overflow:hidden;perspective:1500px;isolation:isolate}
 .console-stage:before{content:attr(data-station);position:absolute;z-index:-1;left:50%;top:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.018);font:clamp(260px,44vw,720px)/.8 'Share Tech Mono';letter-spacing:-.14em;pointer-events:none}
 .console-stage:after{content:"";position:absolute;z-index:-2;inset:7% 6% 9%;border:1px solid rgba(0,234,255,.055);clip-path:polygon(0 0,calc(100% - 60px) 0,100% 60px,100% calc(100% - 40px),calc(100% - 40px) 100%,60px 100%,0 calc(100% - 60px));background:radial-gradient(circle at 50% 50%,transparent 0 30%,rgba(0,234,255,.018) 30.2%,transparent 30.6%),linear-gradient(90deg,transparent 49.95%,rgba(255,36,200,.045) 50%,transparent 50.05%),linear-gradient(transparent 49.95%,rgba(0,234,255,.04) 50%,transparent 50.05%);pointer-events:none}
@@ -85,7 +84,8 @@ html,body,#root{width:100%;height:100%;overflow:hidden}
 .flight-deck__step{width:28px;height:28px;padding:0;display:grid;place-items:center;border:1px solid rgba(0,234,255,.2);background:rgba(0,234,255,.035);color:var(--cyan);cursor:pointer;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
 .flight-deck__step svg{width:13px}.flight-deck__step:disabled{opacity:.2;cursor:default}
 .flight-deck__route{height:auto;display:flex;align-items:center;justify-content:center;gap:9px;background:none}
-.flight-deck__route button{position:relative;width:7px;height:7px;padding:0;border:1px solid #405168;background:#111a27;transform:rotate(45deg);cursor:pointer;transition:.25s}
+.flight-deck__route:before{content:"";position:absolute;left:0;top:50%;width:var(--city-progress);height:1px;background:linear-gradient(90deg,var(--pink),var(--cyan));box-shadow:0 0 8px var(--cyan);transform:translateY(-50%);transition:width .08s linear}
+.flight-deck__route button{position:relative;z-index:1;width:7px;height:7px;padding:0;border:1px solid #405168;background:#111a27;transform:rotate(45deg);cursor:pointer;transition:.25s}
 .flight-deck__route button.passed{border-color:var(--pink);background:rgba(255,36,200,.35)}
 .flight-deck__route button.active{width:11px;height:11px;border-color:var(--cyan);background:var(--cyan);box-shadow:0 0 13px var(--cyan)}
 .flight-deck__percent{min-width:55px;text-align:center}
