@@ -84,8 +84,10 @@ function DataShard({ position, color, speed = 1, scale = 1 }) {
   </group>;
 }
 
-function Facility({ progress, reduced }) {
+function Facility({ progress, reduced, active }) {
   const rig = useRef();
+  const activeDisplay = useRef();
+  const activeColor = ['#00eaff', '#ff24c8', '#00eaff', '#9b6cff', '#00eaff', '#ff24c8', '#00eaff'][active];
   useFrame((state) => {
     const p = reduced ? 0 : progress.current;
     const targetZ = 8 - p * 31;
@@ -94,6 +96,13 @@ function Facility({ progress, reduced }) {
     state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, Math.sin(p * Math.PI * 2) * .42, .025);
     state.camera.lookAt(0, 0, targetZ - 6);
     if (rig.current) rig.current.rotation.z = Math.sin(p * Math.PI * 4) * .018;
+    if (activeDisplay.current) {
+      const side = active % 2 ? .52 : -.52;
+      activeDisplay.current.position.x = THREE.MathUtils.lerp(activeDisplay.current.position.x, side, .06);
+      activeDisplay.current.position.y = THREE.MathUtils.lerp(activeDisplay.current.position.y, -1.62, .06);
+      activeDisplay.current.position.z = targetZ - 6.35;
+      activeDisplay.current.rotation.y = THREE.MathUtils.lerp(activeDisplay.current.rotation.y, active % 2 ? -.035 : .035, .06);
+    }
   });
   return <group ref={rig}>
     <fog attach="fog" args={['#010207', 8, 30]} />
@@ -114,15 +123,23 @@ function Facility({ progress, reduced }) {
     <DataShard position={[4.4, -1.2, -11]} color="#ff24c8" speed={1.2} scale={.7} />
     <DataShard position={[-4.5, -.2, -18]} color="#9b6cff" speed={.65} scale={1.25} />
     <DataShard position={[4.1, 1.4, -25]} color="#00eaff" speed={1.4} scale={.65} />
+    <group ref={activeDisplay}>
+      <mesh><boxGeometry args={[7.75, 5.72, .19]} /><meshStandardMaterial color="#02040c" emissive={activeColor} emissiveIntensity={.28} metalness={.88} roughness={.18} /></mesh>
+      <mesh position={[0, 0, .105]}><planeGeometry args={[7.48, 5.45]} /><meshBasicMaterial color={activeColor} transparent opacity={.035} /></mesh>
+      <Line points={[[-3.87,-2.86,.12],[-3.87,2.86,.12],[3.25,2.86,.12],[3.87,2.24,.12]]} color={activeColor} opacity={.88} transparent lineWidth={1.2} />
+      <Line points={[[-3.3,-2.86,.12],[3.35,-2.86,.12],[3.87,-2.34,.12]]} color={activeColor} opacity={.54} transparent lineWidth={.75} />
+      {[-2.7,-.9,.9,2.7].map((x, i) => <mesh key={x} position={[x, 2.96, .02]}><boxGeometry args={[i === 3 ? .62 : .22, .08, .08]} /><meshBasicMaterial color={i < 2 ? activeColor : '#25324a'} /></mesh>)}
+      <pointLight position={[0, 0, .8]} color={activeColor} intensity={3.8} distance={5.5} />
+    </group>
     {Array.from({ length: 10 }, (_, i) => <mesh key={i} position={[0, 0, 3 - i * 3.4]} rotation={[Math.PI / 2, 0, 0]}>
       <torusGeometry args={[5.1, .018, 6, 96]} /><meshBasicMaterial color={i % 2 ? '#ff24c8' : '#00eaff'} transparent opacity={.16} />
     </mesh>)}
   </group>;
 }
 
-function World({ progress, reduced }) {
+function World({ progress, reduced, active }) {
   return <div className="world" aria-hidden="true"><Canvas camera={{ position: [0, 0, 8], fov: 48 }} dpr={[1, 1.45]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-    <Suspense fallback={null}><Facility progress={progress} reduced={reduced} /></Suspense>
+    <Suspense fallback={null}><Facility progress={progress} reduced={reduced} active={active} /></Suspense>
   </Canvas></div>;
 }
 
@@ -224,7 +241,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
   }, [active, terminal, reduced]);
   return <div className="experience-shell">
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
-    <World progress={progress} reduced={reduced} /><div className="noise" /><div className="scanlines" /><CursorSignal />
+    <World progress={progress} reduced={reduced} active={active} /><div className="noise" /><div className="scanlines" /><CursorSignal />
     <Hud active={active} menu={menu} setMenu={setMenu} travel={travel} />
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <main>
