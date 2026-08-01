@@ -20,9 +20,10 @@
 
 /* Neon tubes: the content stays steady; only the illuminated outline flickers. */
 .manifesto h2{
-  -webkit-text-stroke:1.35px var(--pink);
-  animation:neon-title-lamp 7.8s steps(1,end) infinite;
-  will-change:opacity,filter,text-shadow;
+  color:#fff;
+  -webkit-text-stroke:0;
+  animation:neon-title-lamp 1.5s infinite alternate;
+  will-change:text-shadow;
 }
 .contact-channels>a,.socials>a{
   --lamp-color:var(--cyan);
@@ -45,7 +46,7 @@
   clip-path:inherit;
   opacity:.94;
   filter:drop-shadow(0 0 3px color-mix(in srgb,var(--lamp-color) 62%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--lamp-color) 28%,transparent));
-  animation:neon-border-lamp 8.6s steps(1,end) var(--lamp-delay) infinite;
+  animation:neon-border-lamp 1.5s var(--lamp-delay) infinite alternate;
   will-change:opacity,filter;
 }
 .contact-channels>a>*,.socials>a>*{position:relative;z-index:1}
@@ -56,16 +57,14 @@
   filter:drop-shadow(0 0 5px color-mix(in srgb,var(--lamp-color) 75%,transparent)) drop-shadow(0 0 14px color-mix(in srgb,var(--lamp-color) 36%,transparent));
 }
 @keyframes neon-title-lamp{
-  0%,6.35%,6.82%,7.08%,7.62%,48.9%,49.32%,50.05%,91.6%,92.15%,100%{opacity:1;filter:brightness(1.08);text-shadow:0 0 7px rgba(255,43,214,.78),0 0 20px rgba(255,43,214,.46),0 0 46px rgba(255,43,214,.24)}
-  6.43%,6.7%,49.02%,49.21%,91.72%{opacity:.48;filter:brightness(.62);text-shadow:0 0 3px rgba(255,43,214,.25)}
-  6.55%,49.12%,91.84%{opacity:.13;filter:brightness(.35);text-shadow:none}
-  6.94%,49.48%,92.02%{opacity:.88;filter:brightness(1.55);text-shadow:0 0 10px rgba(255,43,214,.95),0 0 28px rgba(255,43,214,.64),0 0 58px rgba(0,247,255,.2)}
+  0%,18%,22%,25%,53%,57%,100%{
+    text-shadow:0 0 4px #fff,0 0 11px #fff,0 0 19px #fff,0 0 40px var(--pink),0 0 80px var(--pink),0 0 90px var(--pink),0 0 100px var(--pink),0 0 150px var(--pink)
+  }
+  20%,24%,55%{text-shadow:none}
 }
 @keyframes neon-border-lamp{
-  0%,11.4%,11.88%,12.25%,12.72%,58.3%,58.76%,59.31%,94.2%,94.73%,100%{opacity:.94;filter:drop-shadow(0 0 3px color-mix(in srgb,var(--lamp-color) 62%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--lamp-color) 28%,transparent))}
-  11.52%,11.75%,58.42%,58.65%,94.34%{opacity:.32;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--lamp-color) 20%,transparent))}
-  11.64%,58.54%,94.46%{opacity:.06;filter:none}
-  12.03%,58.93%,94.61%{opacity:1;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--lamp-color) 82%,transparent)) drop-shadow(0 0 15px color-mix(in srgb,var(--lamp-color) 42%,transparent))}
+  0%,18%,22%,25%,53%,57%,100%{opacity:1;filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 7px var(--lamp-color)) drop-shadow(0 0 18px color-mix(in srgb,var(--lamp-color) 68%,transparent)) drop-shadow(0 0 32px color-mix(in srgb,var(--lamp-color) 38%,transparent))}
+  20%,24%,55%{opacity:.08;filter:none}
 }
 
 /* Keep the portrait's neon shell and corner markers inside one cyberpunk cut. */
