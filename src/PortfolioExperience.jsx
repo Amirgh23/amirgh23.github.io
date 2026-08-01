@@ -91,6 +91,79 @@ function FlyingVehicle({ position, color, speed, reverse = false, reduced }) {
   </group>;
 }
 
+function FighterCraft({ color, accent, mirrored = false }) {
+  return <group rotation={[0, mirrored ? Math.PI : 0, 0]}>
+    <mesh rotation={[Math.PI / 2, 0, 0]}><coneGeometry args={[.34, 1.55, 5]} /><meshStandardMaterial color="#070914" metalness={.94} roughness={.16} emissive={color} emissiveIntensity={.22} /></mesh>
+    <mesh position={[0, .03, .12]}><boxGeometry args={[1.55, .055, .48]} /><meshStandardMaterial color="#090c18" metalness={.92} roughness={.18} /></mesh>
+    <mesh position={[0, .17, -.12]}><sphereGeometry args={[.19, 10, 8]} /><meshBasicMaterial color={accent} transparent opacity={.8} /></mesh>
+    <mesh position={[-.54, .02, .45]}><boxGeometry args={[.07, .07, .55]} /><meshBasicMaterial color={color} /></mesh>
+    <mesh position={[.54, .02, .45]}><boxGeometry args={[.07, .07, .55]} /><meshBasicMaterial color={color} /></mesh>
+    <mesh position={[-.19, 0, .83]}><sphereGeometry args={[.075, 7, 7]} /><meshBasicMaterial color={accent} /></mesh>
+    <mesh position={[.19, 0, .83]}><sphereGeometry args={[.075, 7, 7]} /><meshBasicMaterial color={accent} /></mesh>
+  </group>;
+}
+
+function LaserBolt({ phase, direction = 1, color, reduced }) {
+  const ref = useRef();
+  useFrame((state) => {
+    if (!ref.current || reduced) return;
+    const cycle = (state.clock.elapsedTime * 1.35 + phase) % 1;
+    ref.current.position.x = direction > 0 ? -3.1 + cycle * 6.2 : 3.1 - cycle * 6.2;
+    ref.current.position.y = 2.45 + Math.sin(phase * 11 + state.clock.elapsedTime * .7) * .28;
+    ref.current.position.z = direction > 0 ? -.8 + cycle * 1.7 : .8 - cycle * 1.7;
+  });
+  return <mesh ref={ref} position={[direction > 0 ? -3 : 3, 2.45, 0]}><boxGeometry args={[.72, .035, .035]} /><meshBasicMaterial color={color} toneMapped={false} /></mesh>;
+}
+
+function NeonDogfight({ reduced }) {
+  const group = useRef(), cyanCraft = useRef(), pinkCraft = useRef(), blast = useRef(), blastMaterial = useRef();
+  useFrame((state) => {
+    if (!group.current || !cyanCraft.current || !pinkCraft.current || !blast.current || !blastMaterial.current) return;
+    group.current.position.z = state.camera.position.z - 19;
+    if (reduced) return;
+    const time = state.clock.elapsedTime;
+    cyanCraft.current.position.set(-2.65 + Math.sin(time * .78) * 1.15, 2.7 + Math.sin(time * 1.17) * .48, -.7 + Math.cos(time * .62) * 1.4);
+    pinkCraft.current.position.set(2.65 + Math.cos(time * .72) * 1.15, 2.55 + Math.cos(time * 1.08) * .46, .8 + Math.sin(time * .58) * 1.5);
+    cyanCraft.current.rotation.z = -.18 + Math.sin(time * .9) * .16;
+    pinkCraft.current.rotation.z = .18 + Math.cos(time * .86) * .16;
+    const impact = Math.max(0, Math.sin(time * 1.9 + .7));
+    blast.current.scale.setScalar(.12 + impact * .42);
+    blastMaterial.current.opacity = impact > .82 ? (impact - .82) * 2.8 : 0;
+  });
+  return <group ref={group} position={[0, 0, -19]}>
+    <group ref={cyanCraft} position={[-2.65, 2.7, -.7]}><FighterCraft color="#00eaff" accent="#a9fbff" /></group>
+    <group ref={pinkCraft} position={[2.65, 2.55, .8]}><FighterCraft color="#ff24c8" accent="#ff9ae8" mirrored /></group>
+    {Array.from({ length: 8 }, (_, index) => <LaserBolt key={index} phase={index * .137} direction={index % 2 ? -1 : 1} color={index % 2 ? '#ff24c8' : '#00eaff'} reduced={reduced} />)}
+    <mesh ref={blast} position={[.15, 2.55, .1]}><sphereGeometry args={[.48, 12, 8]} /><meshBasicMaterial ref={blastMaterial} color="#fff4b0" transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} /></mesh>
+    <pointLight position={[0, 2.6, 0]} color="#ff7a2f" intensity={12} distance={7} />
+  </group>;
+}
+
+function DroneSwarm({ reduced }) {
+  const ref = useRef();
+  useFrame((state) => {
+    if (!ref.current) return;
+    ref.current.position.z = state.camera.position.z - 13;
+    if (!reduced) ref.current.rotation.y = state.clock.elapsedTime * .08;
+  });
+  return <group ref={ref} position={[0, 0, -13]}>{Array.from({ length: 6 }, (_, index) => {
+    const angle = index / 6 * Math.PI * 2;
+    return <group key={index} position={[Math.cos(angle) * (5.8 + index % 2), 4.1 + Math.sin(angle * 2) * 1.1, Math.sin(angle) * 3]}>
+      <mesh><octahedronGeometry args={[.16, 0]} /><meshStandardMaterial color="#080b17" metalness={.9} emissive={index % 2 ? '#ff24c8' : '#00eaff'} emissiveIntensity={1.4} /></mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[.27, .018, 5, 14]} /><meshBasicMaterial color={index % 2 ? '#ff24c8' : '#00eaff'} transparent opacity={.72} /></mesh>
+    </group>;
+  })}</group>;
+}
+
+function NeonBillboard({ position, color, flip = false }) {
+  return <group position={position} rotation={[0, flip ? -.3 : .3, 0]}>
+    <mesh><boxGeometry args={[3.2, 1.45, .08]} /><meshStandardMaterial color="#050713" metalness={.78} roughness={.22} emissive={color} emissiveIntensity={.16} /></mesh>
+    <mesh position={[0, 0, .05]}><planeGeometry args={[2.88, 1.15]} /><meshBasicMaterial color={color} transparent opacity={.13} /></mesh>
+    {[-.34, 0, .34].map((y, index) => <mesh key={y} position={[index ? -.35 : .3, y, .065]}><boxGeometry args={[index === 1 ? 1.85 : 2.25, .035, .02]} /><meshBasicMaterial color={index === 1 ? '#ffffff' : color} transparent opacity={index === 1 ? .5 : .9} /></mesh>)}
+    <pointLight position={[0, 0, 1]} color={color} intensity={5} distance={6} />
+  </group>;
+}
+
 function CityRain({ reduced }) {
   const ref = useRef();
   const positions = useMemo(() => {
@@ -147,6 +220,12 @@ function NightCity({ active, reduced, travel }) {
     <FlyingVehicle position={[-2.8, 1.5, -2]} color="#ff24c8" speed={3.5} reduced={reduced} />
     <FlyingVehicle position={[3.4, 3.2, -18]} color="#00eaff" speed={2.8} reverse reduced={reduced} />
     <FlyingVehicle position={[-.8, 5.1, -34]} color="#ff7a2f" speed={2.1} reduced={reduced} />
+    <NeonDogfight reduced={reduced} />
+    <DroneSwarm reduced={reduced} />
+    <NeonBillboard position={[-5.7, 2.4, -9]} color="#ff24c8" />
+    <NeonBillboard position={[5.8, 3.7, -21]} color="#00eaff" flip />
+    <NeonBillboard position={[-5.5, 4.5, -36]} color="#895cff" />
+    <NeonBillboard position={[5.9, 2.8, -49]} color="#ff7a2f" flip />
     <CityRain reduced={reduced} />
     <mesh position={[0, 8, -48]}><sphereGeometry args={[10, 32, 16]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.045} /></mesh>
   </group>;
