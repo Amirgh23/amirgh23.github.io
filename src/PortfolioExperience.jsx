@@ -346,8 +346,75 @@ function NightCity({ active, reduced, travel }) {
   </group>;
 }
 
+function JourneyZone({ index, z }) {
+  const cyan = '#00eaff', pink = '#ff24c8', violet = '#9b6cff', green = '#42ff9e';
+  if (index === 0) return <group position={[0, 0, z]}>
+    <NeonGateway z={0} index={0} />
+    {Array.from({ length: 14 }, (_, i) => <CyberBuilding key={i} index={i} building={{ x: (i % 2 ? 1 : -1) * (5.8 + i % 3 * 1.25), z: -8 + Math.floor(i / 2) * 2.4, width: 1.2 + i % 3 * .3, depth: 1.5, height: 3.8 + i % 5 * 1.2, color: i % 3 ? cyan : pink, side: i % 2 ? 1 : -1 }} />)}
+    <NeonBillboard position={[-5.4, 1.25, -5]} color={pink} />
+    <NeonBillboard position={[5.2, 2.1, -10]} color={cyan} flip />
+  </group>;
+  if (index === 1) return <group position={[0, 0, z]}>
+    {[-7,-3.5,0,3.5,7].map((offset, i) => <group key={offset} position={[0, 0, offset]}><NeonGateway z={0} index={i + 1} /></group>)}
+    {Array.from({ length: 12 }, (_, i) => <mesh key={i} position={[(i % 2 ? 1 : -1) * (3.8 + i % 3 * .75), -.35 + i % 3 * 1.4, -5 + i * 1.05]} rotation={[.18 * i,.22 * i,.08 * i]}><boxGeometry args={[1.15,1.15,1.15]} /><meshStandardMaterial color="#050817" emissive={i % 2 ? pink : cyan} emissiveIntensity={.45} metalness={.9} roughness={.18} wireframe /></mesh>)}
+  </group>;
+  if (index === 2) return <group position={[0, 1.15, z]}>
+    {[0,1,2,3].map((ring) => <mesh key={ring} rotation={[ring % 2 ? Math.PI / 2 : 0, ring * .55, ring * .2]}><torusGeometry args={[2.1 + ring * .55,.035,8,72]} /><meshBasicMaterial color={ring % 2 ? pink : cyan} transparent opacity={.75 - ring * .1} /></mesh>)}
+    <mesh><icosahedronGeometry args={[1.35,2]} /><meshStandardMaterial color="#060a18" emissive={violet} emissiveIntensity={1.4} metalness={.92} roughness={.16} wireframe /></mesh>
+    {Array.from({length:10},(_,i)=>{const a=i/10*Math.PI*2;return <mesh key={i} position={[Math.cos(a)*4,Math.sin(a*2)*1.4,Math.sin(a)*4]}><sphereGeometry args={[.09,8,8]} /><meshBasicMaterial color={i%2?pink:cyan} /></mesh>;})}
+  </group>;
+  if (index === 3) return <group position={[0, 0, z]}>
+    {Array.from({ length: 22 }, (_, i) => <DataSpire key={i} index={i} item={{ x:(i%2?1:-1)*(3.6+i%5*.72), z:-9+Math.floor(i/2)*1.75, height:3.4+i%6*1.1, width:.38+i%3*.14, color:i%3===0?pink:i%3===1?cyan:violet, lean:(i%2?1:-1)*.025*(i%3) }} />)}
+    <group position={[0,2.2,-4]}><mesh rotation={[Math.PI/2,0,0]}><torusGeometry args={[2.1,.035,8,64]} /><meshBasicMaterial color={cyan} /></mesh><mesh rotation={[0,Math.PI/2,0]}><torusGeometry args={[1.55,.028,8,56]} /><meshBasicMaterial color={pink} /></mesh><mesh><icosahedronGeometry args={[.82,1]} /><meshBasicMaterial color={violet} wireframe /></mesh><pointLight color={cyan} intensity={22} distance={18} /></group>
+  </group>;
+  if (index === 4) return <group position={[0, 0, z]}>
+    {Array.from({length:9},(_,i)=><group key={i} position={[0,0,-10+i*2.5]}><NeonGateway z={0} index={i} /><mesh position={[0,5.7,.02]}><boxGeometry args={[2.4,.11,.05]} /><meshBasicMaterial color={i%2?green:pink} /></mesh></group>)}
+    {Array.from({length:18},(_,i)=><mesh key={i} position={[(i%2?1:-1)*4.5,-1.35,-10+i*1.25]}><sphereGeometry args={[.12,8,8]} /><meshBasicMaterial color={i%2?cyan:pink} /></mesh>)}
+  </group>;
+  if (index === 5) return <group position={[0, .45, z]}>
+    {Array.from({length:18},(_,i)=>{const angle=i*.92, radius=2.4+(i%4)*1.15, point=[Math.cos(angle)*radius,Math.sin(angle*1.7)*2.8,-7+i*.78];return <group key={i}><mesh position={point}><octahedronGeometry args={[.16+i%3*.07,0]} /><meshStandardMaterial color="#060914" emissive={i%2?pink:cyan} emissiveIntensity={1.8} metalness={.85} /></mesh><Line points={[[0,0,-2],point]} color={i%3===0?violet:i%2?pink:cyan} opacity={.28} transparent lineWidth={.45} /></group>;})}
+    <mesh position={[0,0,-2]}><dodecahedronGeometry args={[1.15,1]} /><meshBasicMaterial color={violet} wireframe transparent opacity={.8} /></mesh>
+  </group>;
+  return <group position={[0, 1, z]}>
+    {[0,1,2,3,4].map((ring)=><mesh key={ring} rotation={[ring*.23,ring*.41,ring*.16]}><torusGeometry args={[1.7+ring*.72,.045,8,80]} /><meshBasicMaterial color={ring%2?pink:cyan} transparent opacity={.88-ring*.11} /></mesh>)}
+    <mesh><sphereGeometry args={[.72,24,16]} /><meshBasicMaterial color="#ffffff" /></mesh>
+    <pointLight color={cyan} intensity={45} distance={24} />
+    <Stars radius={18} depth={12} count={650} factor={2.5} fade speed={.35} />
+  </group>;
+}
+
+function JourneyWorld({ active, reduced, travel }) {
+  const rig = useRef(), orbit = useRef();
+  const zoneGap = 28;
+  useFrame((state) => {
+    const journey = reduced ? active / (stations.length - 1) : travel.current;
+    const targetZ = 8 - journey * zoneGap * (stations.length - 1);
+    const sway = reduced ? 0 : Math.sin(journey * Math.PI * 6) * .72;
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, sway, .045);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, .75 + Math.sin(journey * Math.PI * 4) * .22, .045);
+    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, .06);
+    state.camera.lookAt(sway * .12, -.35, targetZ - 12);
+    if (rig.current) rig.current.position.x = THREE.MathUtils.lerp(rig.current.position.x, -sway * .18, .035);
+    if (orbit.current && !reduced) orbit.current.rotation.y = state.clock.elapsedTime * .12;
+  });
+  return <group ref={rig}>
+    <fog attach="fog" args={['#02030b', 9, 29]} />
+    <ambientLight color="#263d75" intensity={.55} />
+    <hemisphereLight color="#3158a6" groundColor="#a90d72" intensity={.65} />
+    <pointLight position={[-5,4,2]} color="#00eaff" intensity={28} distance={28} />
+    <pointLight position={[5,1,-4]} color="#ff24c8" intensity={32} distance={28} />
+    <mesh position={[0,-3.48,-76]}><boxGeometry args={[10.8,.12,190]} /><meshStandardMaterial color="#030611" metalness={.9} roughness={.26} /></mesh>
+    <gridHelper args={[190,95,'#00eaff','#17264d']} position={[0,-3.4,-76]} rotation={[0,0,0]} />
+    <mesh position={[-2.25,-3.31,-76]}><boxGeometry args={[.045,.03,190]} /><meshBasicMaterial color="#00eaff" /></mesh>
+    <mesh position={[2.25,-3.31,-76]}><boxGeometry args={[.045,.03,190]} /><meshBasicMaterial color="#ff24c8" /></mesh>
+    {stations.map((station,index)=><JourneyZone key={station.id} index={index} z={-index*zoneGap} />)}
+    <group ref={orbit}><DroneSwarm reduced={reduced} /></group>
+    <CityRain reduced={reduced} />
+  </group>;
+}
+
 function Facility({ active, reduced, travel }) {
-  return <NightCity active={active} reduced={reduced} travel={travel} />;
+  return <JourneyWorld active={active} reduced={reduced} travel={travel} />;
 }
 
 function World({ active, reduced, travel }) {
