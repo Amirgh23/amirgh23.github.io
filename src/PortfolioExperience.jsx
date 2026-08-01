@@ -255,7 +255,7 @@ function Terminal({ open, close, projects }) {
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
   const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1), [cityProgress, setCityProgress] = useState(0);
-  const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null), snapTimer = useRef(null), routeTarget = useRef(null), scrollAnimation = useRef(null); const reduced = useReducedMotion();
+  const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null), snapTimer = useRef(null), routeTarget = useRef(null), scrollAnimation = useRef(null), wheelIntent = useRef(0), wheelResetTimer = useRef(null); const reduced = useReducedMotion();
   const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
   const setStation = (bounded) => {
     if (bounded === activeRef.current) return;
@@ -347,21 +347,27 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
         panel.scrollTop += event.deltaY;
         return;
       }
-      scrollAnimation.current?.stop();
-      routeTarget.current = null;
       event.preventDefault();
-      scrollTo({ top: scrollY + event.deltaY * .72, behavior: 'auto' });
+      if (routeTarget.current != null) return;
+      const deltaUnit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1;
+      wheelIntent.current += event.deltaY * deltaUnit;
+      clearTimeout(wheelResetTimer.current);
+      wheelResetTimer.current = setTimeout(() => { wheelIntent.current = 0; }, 160);
+      if (Math.abs(wheelIntent.current) < 36) return;
+      const nextStation = Math.max(0, Math.min(stations.length - 1, activeRef.current + Math.sign(wheelIntent.current)));
+      wheelIntent.current = 0;
+      if (nextStation !== activeRef.current) navigate(nextStation);
     };
     const onTouchStart = (event) => { touchStart.current = event.touches[0]?.clientX ?? null; };
     const onTouchEnd = (event) => {
       if (touchStart.current == null) return;
       const delta = touchStart.current - (event.changedTouches[0]?.clientX ?? touchStart.current);
-      if (Math.abs(delta) > 55) navigate(activeRef.current + (delta > 0 ? 1 : -1));
+      if (Math.abs(delta) > 42) navigate(activeRef.current + (delta > 0 ? 1 : -1));
       touchStart.current = null;
     };
     addEventListener('keydown', onKey); addEventListener('wheel', onWheel, { passive: false });
     addEventListener('touchstart', onTouchStart, { passive: true }); addEventListener('touchend', onTouchEnd, { passive: true });
-    return () => { removeEventListener('keydown', onKey); removeEventListener('wheel', onWheel); removeEventListener('touchstart', onTouchStart); removeEventListener('touchend', onTouchEnd); };
+    return () => { clearTimeout(wheelResetTimer.current); removeEventListener('keydown', onKey); removeEventListener('wheel', onWheel); removeEventListener('touchstart', onTouchStart); removeEventListener('touchend', onTouchEnd); };
   }, [terminal]);
   return <><div className="experience-shell">
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
