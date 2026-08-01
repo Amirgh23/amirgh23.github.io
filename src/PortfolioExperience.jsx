@@ -9,6 +9,15 @@ import {
 import * as THREE from 'three';
 
 const cut = 'polygon(0 0,calc(100% - 26px) 0,100% 26px,100% calc(100% - 16px),calc(100% - 16px) 100%,26px 100%,0 calc(100% - 26px))';
+const stations = [
+  { id: 'entry', code: '00', label: 'ENTRY', signal: 'THE GATE IS OPEN' },
+  { id: 'featured', code: '01', label: 'WORK', signal: 'PROOF BEFORE PROMISE' },
+  { id: 'profile', code: '02', label: 'PROFILE', signal: 'OPERATOR IDENTIFIED' },
+  { id: 'skills', code: '03', label: 'STACK', signal: 'CAPABILITY ARRAY' },
+  { id: 'experience', code: '04', label: 'LOG', signal: 'TEN YEARS IN MOTION' },
+  { id: 'projects', code: '05', label: 'ARCHIVE', signal: 'PUBLIC NETWORK ONLINE' },
+  { id: 'contact', code: '06', label: 'UPLINK', signal: 'TRANSMISSION READY' },
+];
 
 function BootSequence({ done }) {
   const [step, setStep] = useState(0);
@@ -61,6 +70,20 @@ function Monitor({ position, rotation = [0, 0, 0], color = '#00eaff', size = [3.
   </group>;
 }
 
+function DataShard({ position, color, speed = 1, scale = 1 }) {
+  const ref = useRef();
+  useFrame((state, delta) => {
+    if (!ref.current) return;
+    ref.current.rotation.x += delta * .18 * speed;
+    ref.current.rotation.y += delta * .27 * speed;
+    ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * .5 * speed + position[2]) * .18;
+  });
+  return <group ref={ref} position={position} scale={scale}>
+    <mesh><octahedronGeometry args={[.55, 0]} /><meshStandardMaterial color="#02040c" emissive={color} emissiveIntensity={.7} wireframe /></mesh>
+    <mesh scale={.27}><octahedronGeometry args={[.55, 0]} /><meshBasicMaterial color={color} /></mesh>
+  </group>;
+}
+
 function Facility({ progress, reduced }) {
   const rig = useRef();
   useFrame((state) => {
@@ -87,6 +110,10 @@ function Facility({ progress, reduced }) {
     <Monitor position={[-2.6, -.85, -19]} rotation={[0, .3, 0]} color="#00eaff" size={[3, 1.7]} />
     <NeuralCore position={[2.4, .2, -23]} scale={.5} />
     <Monitor position={[-2.8, .45, -26]} rotation={[0, .28, 0]} color="#ff24c8" />
+    <DataShard position={[-4.2, 1.8, -4]} color="#00eaff" speed={.8} />
+    <DataShard position={[4.4, -1.2, -11]} color="#ff24c8" speed={1.2} scale={.7} />
+    <DataShard position={[-4.5, -.2, -18]} color="#9b6cff" speed={.65} scale={1.25} />
+    <DataShard position={[4.1, 1.4, -25]} color="#00eaff" speed={1.4} scale={.65} />
     {Array.from({ length: 10 }, (_, i) => <mesh key={i} position={[0, 0, 3 - i * 3.4]} rotation={[Math.PI / 2, 0, 0]}>
       <torusGeometry args={[5.1, .018, 6, 96]} /><meshBasicMaterial color={i % 2 ? '#ff24c8' : '#00eaff'} transparent opacity={.16} />
     </mesh>)}
@@ -99,19 +126,41 @@ function World({ progress, reduced }) {
   </Canvas></div>;
 }
 
-function Hud({ active, menu, setMenu }) {
-  const labels = [['00','ENTRY'],['01','WORK'],['02','PROFILE'],['03','STACK'],['04','LOG'],['05','ARCHIVE'],['06','UPLINK']];
+function Hud({ active, menu, setMenu, travel }) {
+  const station = stations[active];
   return <>
     <header className="hud-top">
       <a href="#entry" className="mark">MER<span>23</span>LIN<small>AUTONOMOUS PORTFOLIO</small></a>
-      <div className="telemetry"><i /> FACILITY ONLINE <span>2026 // MASHHAD</span></div>
+      <div className="telemetry"><i /> FACILITY ONLINE <span>{station.signal} // Z-{String(Math.round(travel * 310)).padStart(3, '0')}</span></div>
       <button onClick={() => setMenu(!menu)} aria-label={menu ? 'Close navigation' : 'Open navigation'}>{menu ? <X /> : <Menu />}</button>
     </header>
     <nav className={`rail ${menu ? 'is-open' : ''}`} aria-label="Portfolio sections">
-      {labels.map(([n,label], i) => <a key={label} href={`#${['entry','featured','profile','skills','experience','projects','contact'][i]}`} className={active === i ? 'active' : ''} onClick={() => setMenu(false)}><b>{label}</b><span>{n}</span></a>)}
+      {stations.map((item, i) => <a key={item.id} href={`#${item.id}`} className={active === i ? 'active' : ''} onClick={() => setMenu(false)}><b>{item.label}</b><span>{item.code}</span></a>)}
     </nav>
     <div className="hud-corners" aria-hidden="true"><i /><i /><i /><i /></div>
+    <div className="flight-deck" aria-live="polite">
+      <div className="flight-deck__station"><small>CURRENT STATION</small><b>{station.code} // {station.label}</b></div>
+      <div className="flight-deck__route"><i style={{ width: `${travel * 100}%` }} /><span style={{ left: `${travel * 100}%` }} /></div>
+      <div className="flight-deck__percent">{String(Math.round(travel * 100)).padStart(2, '0')}<small>% TRAVERSED</small></div>
+      <div className="flight-deck__keys">J / K&nbsp;&nbsp; NAVIGATE</div>
+    </div>
   </>;
+}
+
+function CursorSignal() {
+  const ref = useRef();
+  useEffect(() => {
+    if (!matchMedia('(pointer:fine)').matches) return undefined;
+    const move = (event) => {
+      if (!ref.current) return;
+      ref.current.style.setProperty('--x', `${event.clientX}px`);
+      ref.current.style.setProperty('--y', `${event.clientY}px`);
+      ref.current.classList.toggle('is-link', Boolean(event.target.closest('a,button,input')));
+    };
+    addEventListener('pointermove', move);
+    return () => removeEventListener('pointermove', move);
+  }, []);
+  return <div className="cursor-signal" ref={ref} aria-hidden="true"><i /><span /></div>;
 }
 
 function Section({ id, index, eyebrow, title, side = 'left', children, className = '' }) {
@@ -151,17 +200,27 @@ function Terminal({ open, close, projects }) {
 }
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
-  const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0);
+  const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [travel, setTravel] = useState(0);
   const progress = useRef(0); const reduced = useReducedMotion();
   const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
   useEffect(() => {
-    const update = () => { const max = document.documentElement.scrollHeight - innerHeight; progress.current = max > 0 ? scrollY / max : 0; const nodes = [...document.querySelectorAll('.chapter')]; let nearest = 0, distance = Infinity; nodes.forEach((node,i)=>{const d=Math.abs(node.getBoundingClientRect().top-innerHeight*.28);if(d<distance){distance=d;nearest=i;}}); setActive(nearest); };
+    const update = () => { const max = document.documentElement.scrollHeight - innerHeight; progress.current = max > 0 ? scrollY / max : 0; setTravel(progress.current); const nodes = [...document.querySelectorAll('.chapter')]; let nearest = 0, distance = Infinity; nodes.forEach((node,i)=>{const d=Math.abs(node.getBoundingClientRect().top-innerHeight*.28);if(d<distance){distance=d;nearest=i;}}); setActive(nearest); };
     update(); addEventListener('scroll', update, { passive: true }); return () => removeEventListener('scroll', update);
   }, []);
+  useEffect(() => {
+    const navigate = (event) => {
+      if (event.target.matches('input') || terminal) return;
+      if (event.key.toLowerCase() !== 'j' && event.key.toLowerCase() !== 'k') return;
+      const direction = event.key.toLowerCase() === 'j' ? 1 : -1;
+      const target = stations[Math.max(0, Math.min(stations.length - 1, active + direction))];
+      document.getElementById(target.id)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    };
+    addEventListener('keydown', navigate); return () => removeEventListener('keydown', navigate);
+  }, [active, terminal, reduced]);
   return <div className="experience-shell">
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
-    <World progress={progress} reduced={reduced} /><div className="noise" /><div className="scanlines" />
-    <Hud active={active} menu={menu} setMenu={setMenu} />
+    <World progress={progress} reduced={reduced} /><div className="noise" /><div className="scanlines" /><CursorSignal />
+    <Hud active={active} menu={menu} setMenu={setMenu} travel={travel} />
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <main>
       <Section id="entry" index={0} eyebrow="WELCOME TO THE NEURAL FACILITY" className="hero-chapter">
@@ -170,6 +229,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
         <p className="hero-lead">AI agents, full-stack systems and high-impact interfaces engineered from research core to production surface.</p>
         <div className="hero-cta"><a href="#featured">ENTER FACILITY <ArrowDown /></a><a href="#contact">START A PROJECT <Send /></a></div>
         <div className="hero-stats"><div><b>10</b><span>YEARS PROGRAMMING</span></div><div><b>7</b><span>YEARS FRONTEND</span></div><div><b>7</b><span>YEARS AI</span></div><div><b>15+</b><span>COMPANY COLLABS</span></div></div>
+        <div className="operator-seal" aria-hidden="true"><span>MER23LIN</span><b>M/23</b><small>ENGINEERED INTELLIGENCE</small></div>
       </Section>
 
       <Section id="featured" index={1} eyebrow="SELECTED PROOF" title="FEATURED PROJECT VAULT" side="right"><p className="section-lead">Real problems, explicit roles, inspectable engineering decisions and outcomes.</p><Featured items={featuredProjects} /></Section>
