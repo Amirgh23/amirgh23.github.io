@@ -63,3 +63,43 @@ main{position:relative;z-index:2}.chapter{min-height:118vh;padding:130px clamp(7
   .chapter:not(.hero-chapter) .screen-dock{position:relative;inset:auto;opacity:1!important;filter:none!important;transform:none!important;pointer-events:auto}
   .chapter:not(.hero-chapter) .chapter__panel{max-height:none;overflow:visible}
 }
+
+/* Mission console: discrete node switching replaces the old scroll journey. */
+html,body,#root{width:100%;height:100%;overflow:hidden}
+.experience-shell{height:100%;overflow:hidden}
+.console-stage{position:fixed;z-index:2;inset:74px 0 0;overflow:hidden;perspective:1500px;isolation:isolate}
+.console-stage:before{content:attr(data-station);position:absolute;z-index:-1;left:50%;top:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.018);font:clamp(260px,44vw,720px)/.8 'Share Tech Mono';letter-spacing:-.14em;pointer-events:none}
+.console-stage:after{content:"";position:absolute;z-index:-2;inset:7% 6% 9%;border:1px solid rgba(0,234,255,.055);clip-path:polygon(0 0,calc(100% - 60px) 0,100% 60px,100% calc(100% - 40px),calc(100% - 40px) 100%,60px 100%,0 calc(100% - 60px));background:radial-gradient(circle at 50% 50%,transparent 0 30%,rgba(0,234,255,.018) 30.2%,transparent 30.6%),linear-gradient(90deg,transparent 49.95%,rgba(255,36,200,.045) 50%,transparent 50.05%),linear-gradient(transparent 49.95%,rgba(0,234,255,.04) 50%,transparent 50.05%);pointer-events:none}
+.console-stage .chapter{position:absolute!important;inset:0;min-height:0!important;height:100%;margin:0;padding:clamp(36px,5vh,64px) clamp(74px,8vw,132px) clamp(76px,10vh,108px)!important;display:flex!important;align-items:center;overflow:hidden;pointer-events:auto!important;transform-style:preserve-3d}
+.console-stage .chapter:before{display:none}
+.console-stage .screen-dock.console-window{position:relative!important;inset:auto!important;width:min(940px,76vw);margin:0;opacity:1!important;filter:drop-shadow(0 28px 80px rgba(0,0,0,.52))!important;transform:none!important;animation:none!important;pointer-events:auto!important;transform-style:preserve-3d}
+.console-stage .chapter--right{justify-content:flex-end}
+.console-stage .chapter--left{justify-content:flex-start}
+.console-stage .chapter__panel{width:100%!important;max-height:calc(100vh - 210px)!important;overflow:auto!important;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--screen) rgba(2,4,12,.8)}
+.console-stage .hero-chapter .screen-dock{width:min(850px,67vw)}
+.console-stage .hero-chapter .chapter__panel{overflow:visible!important}
+.console-stage .contact-chapter{justify-content:center}
+.console-stage .contact-chapter .screen-dock{width:min(1050px,84vw)!important}
+.console-stage .contact-chapter .chapter__panel{max-height:calc(100vh - 190px)!important}
+.flight-deck{width:min(660px,58vw);grid-template-columns:auto auto 1fr auto auto;gap:12px}
+.flight-deck__step{width:28px;height:28px;padding:0;display:grid;place-items:center;border:1px solid rgba(0,234,255,.2);background:rgba(0,234,255,.035);color:var(--cyan);cursor:pointer;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
+.flight-deck__step svg{width:13px}.flight-deck__step:disabled{opacity:.2;cursor:default}
+.flight-deck__route{height:auto;display:flex;align-items:center;justify-content:center;gap:9px;background:none}
+.flight-deck__route button{position:relative;width:7px;height:7px;padding:0;border:1px solid #405168;background:#111a27;transform:rotate(45deg);cursor:pointer;transition:.25s}
+.flight-deck__route button.passed{border-color:var(--pink);background:rgba(255,36,200,.35)}
+.flight-deck__route button.active{width:11px;height:11px;border-color:var(--cyan);background:var(--cyan);box-shadow:0 0 13px var(--cyan)}
+.flight-deck__percent{min-width:55px;text-align:center}
+.world:after{transition:background 1s ease}
+
+@media(max-width:760px){
+  .console-stage{inset:64px 0 0}
+  .console-stage:after{inset:3% 10px 8%}
+  .console-stage .chapter,.console-stage .chapter:not(.hero-chapter){position:absolute!important;inset:0;padding:26px 16px 72px!important;display:flex!important;align-items:center;overflow:hidden}
+  .console-stage .screen-dock.console-window,.console-stage .hero-chapter .screen-dock,.console-stage .contact-chapter .screen-dock{position:relative!important;width:100%!important;inset:auto!important;transform:none!important}
+  .console-stage .chapter__panel,.console-stage .hero-chapter .chapter__panel,.console-stage .contact-chapter .chapter__panel{max-height:calc(100svh - 156px)!important;overflow-y:auto!important;padding:26px 18px}
+  .console-stage .hero-chapter{min-height:0;padding-top:26px!important}
+  .console-stage .hero-chapter h1{font-size:clamp(44px,13vw,68px)}
+  .flight-deck{right:12px;left:12px;bottom:10px;width:auto;height:44px;grid-template-columns:auto 1fr auto auto;gap:8px}
+  .flight-deck__station{display:none}.flight-deck__route{gap:7px}.flight-deck__step{width:26px;height:26px}.flight-deck__percent{min-width:42px}
+  .terminal-trigger{bottom:61px}
+}

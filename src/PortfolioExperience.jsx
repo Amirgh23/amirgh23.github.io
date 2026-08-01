@@ -1,9 +1,9 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Line, Stars } from '@react-three/drei';
-import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
-  ArrowDown, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
+  ArrowLeft, ArrowRight, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
   Instagram, Linkedin, Menu, Phone, Send, Terminal as TerminalIcon, X,
 } from 'lucide-react';
 import * as THREE from 'three';
@@ -35,7 +35,7 @@ function BootSequence({ done }) {
       <div className="boot__readout">NEURAL FACILITY // VISITOR BOOT</div>
       {lines.map((line, index) => <p key={line} className={index < step ? 'is-ready' : ''}><b>0{index + 1}</b>{line}<span>{index < step ? 'ONLINE' : 'WAIT'}</span></p>)}
       <div className="boot__bar"><i style={{ width: `${step / lines.length * 100}%` }} /></div>
-      <small>SCROLL TO TRAVERSE · NO AUDIO REQUIRED</small>
+      <small>SELECT A NODE · WHEEL / SWIPE / J K · NO AUDIO REQUIRED</small>
     </div>
   </motion.div>;
 }
@@ -76,16 +76,22 @@ function DataShard({ position, color, speed = 1, scale = 1 }) {
   </group>;
 }
 
-function Facility({ progress, reduced }) {
+function Facility({ active, reduced }) {
   const rig = useRef();
+  const cameraTargets = [
+    [0, 0, 8], [1.8, .15, 5.8], [-1.5, .45, 6.4], [1.4, -.3, 5.9],
+    [-1.25, -.35, 6.2], [1.1, .55, 5.7], [0, .1, 5.35],
+  ];
   useFrame((state) => {
-    const p = reduced ? 0 : progress.current;
-    const targetZ = 8 - p * 31;
-    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, .035);
-    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, Math.sin(p * Math.PI * 3) * 1.15, .025);
-    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, Math.sin(p * Math.PI * 2) * .42, .025);
-    state.camera.lookAt(0, 0, targetZ - 6);
-    if (rig.current) rig.current.rotation.z = Math.sin(p * Math.PI * 4) * .018;
+    const target = reduced ? cameraTargets[0] : cameraTargets[active];
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, target[0], .035);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, target[1], .035);
+    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, target[2], .035);
+    state.camera.lookAt(0, 0, -1.5);
+    if (rig.current) {
+      rig.current.rotation.y = THREE.MathUtils.lerp(rig.current.rotation.y, active * -.13, .025);
+      rig.current.rotation.z = THREE.MathUtils.lerp(rig.current.rotation.z, (active % 2 ? 1 : -1) * .012, .025);
+    }
   });
   return <group ref={rig}>
     <fog attach="fog" args={['#010207', 8, 30]} />
@@ -107,37 +113,36 @@ function Facility({ progress, reduced }) {
   </group>;
 }
 
-function World({ progress, reduced }) {
+function World({ active, reduced }) {
   return <div className="world" aria-hidden="true"><Canvas camera={{ position: [0, 0, 8], fov: 48 }} dpr={[1, 1.45]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-    <Suspense fallback={null}><Facility progress={progress} reduced={reduced} /></Suspense>
+    <Suspense fallback={null}><Facility active={active} reduced={reduced} /></Suspense>
   </Canvas></div>;
 }
 
-function Hud({ active, menu, setMenu, travel }) {
+function Hud({ active, menu, setMenu, navigate }) {
   const station = stations[active];
-  const travelTo = (event, id) => {
+  const travelTo = (event, index) => {
     event.preventDefault();
-    const node = document.getElementById(id);
-    if (!node) return;
-    const top = id === 'entry' ? 0 : node.offsetTop + node.offsetHeight / 2 - innerHeight / 2;
-    scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    navigate(index);
     setMenu(false);
   };
   return <>
     <header className="hud-top">
       <a href="#entry" className="mark">MER<span>23</span>LIN<small>AUTONOMOUS PORTFOLIO</small></a>
-      <div className="telemetry"><i /> FACILITY ONLINE <span>{station.signal} // Z-{String(Math.round(travel * 310)).padStart(3, '0')}</span></div>
+      <div className="telemetry"><i /> FACILITY ONLINE <span>{station.signal} // NODE-{station.code}</span></div>
       <button onClick={() => setMenu(!menu)} aria-label={menu ? 'Close navigation' : 'Open navigation'}>{menu ? <X /> : <Menu />}</button>
     </header>
     <nav className={`rail ${menu ? 'is-open' : ''}`} aria-label="Portfolio sections">
-      {stations.map((item, i) => <a key={item.id} href={`#${item.id}`} className={active === i ? 'active' : ''} onClick={(event) => travelTo(event, item.id)}><b>{item.label}</b><span>{item.code}</span></a>)}
+      {stations.map((item, i) => <a key={item.id} href={`#${item.id}`} className={active === i ? 'active' : ''} onClick={(event) => travelTo(event, i)}><b>{item.label}</b><span>{item.code}</span></a>)}
     </nav>
     <div className="hud-corners" aria-hidden="true"><i /><i /><i /><i /></div>
     <div className="flight-deck" aria-live="polite">
       <div className="flight-deck__station"><small>CURRENT STATION</small><b>{station.code} // {station.label}</b></div>
-      <div className="flight-deck__route"><i style={{ width: `${travel * 100}%` }} /><span style={{ left: `${travel * 100}%` }} /></div>
-      <div className="flight-deck__percent">{String(Math.round(travel * 100)).padStart(2, '0')}<small>% TRAVERSED</small></div>
-      <div className="flight-deck__keys">J / K&nbsp;&nbsp; NAVIGATE</div>
+      <button className="flight-deck__step" onClick={() => navigate(active - 1)} disabled={active === 0} aria-label="Previous station"><ArrowLeft /></button>
+      <div className="flight-deck__route">{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
+      <div className="flight-deck__percent">{String(active + 1).padStart(2, '0')}<small>/ {String(stations.length).padStart(2, '0')} NODES</small></div>
+      <button className="flight-deck__step" onClick={() => navigate(active + 1)} disabled={active === stations.length - 1} aria-label="Next station"><ArrowRight /></button>
+      <div className="flight-deck__keys">WHEEL · SWIPE · J / K</div>
     </div>
   </>;
 }
@@ -158,22 +163,16 @@ function CursorSignal() {
   return <div className="cursor-signal" ref={ref} aria-hidden="true"><i /><span /></div>;
 }
 
-function Section({ id, index, eyebrow, title, side = 'left', children, className = '', active = false }) {
-  const sectionRef = useRef();
+function Section({ id, index, eyebrow, title, side = 'left', children, className = '', active = false, direction = 1 }) {
   const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
-  const travel = useSpring(scrollYProgress, { stiffness: 92, damping: 26, mass: .34, restDelta: .0008 });
-  const scale = useTransform(travel, [0, .2, .38, .5, .62, .8, 1], [.16, .32, .72, 1, .72, .32, .16]);
-  const opacity = useTransform(travel, [0, .16, .34, .5, .66, .84, 1], [0, .05, .72, 1, .72, .05, 0]);
-  const blur = useTransform(travel, [0, .28, .5, .72, 1], ['blur(10px)', 'blur(4px)', 'blur(0px)', 'blur(4px)', 'blur(10px)']);
-  const y = useTransform(travel, [0, .5, 1], ['calc(-50% - 22px)', '-50%', 'calc(-50% + 22px)']);
-  const x = useTransform(travel, [0, .5, 1], side === 'left' ? [-90, 0, 70] : [90, 0, -70]);
-  const rotateY = useTransform(travel, [0, .5, 1], side === 'left' ? [9, 0, -6] : [-9, 0, 6]);
   const screenColors = ['#00eaff', '#ff24c8', '#00eaff', '#9b6cff', '#00eaff', '#ff24c8', '#00eaff'];
-  const centered = className.includes('contact-chapter');
-  const spatialStyle = index === 0 ? { opacity: 1, scale: 1, filter: 'blur(0px)', x: 0, y: 0, rotateY: 0 } : reduceMotion ? { opacity: 1, scale: 1, filter: 'blur(0px)', x: centered ? '-50%' : 0, y: '-50%', rotateY: 0 } : { scale, opacity, filter: blur, x: centered ? '-50%' : x, y, rotateY };
-  return <section ref={sectionRef} id={id} className={`chapter chapter--${side} ${className} ${active ? 'is-spatial-active' : ''}`} data-index={index} style={{ '--screen': screenColors[index], position: 'relative' }}>
-    <motion.div className="screen-dock spatial-framer" style={spatialStyle}>
+  const variants = reduceMotion ? { enter: { opacity: 1 }, center: { opacity: 1 }, exit: { opacity: 0 } } : {
+    enter: (way) => ({ opacity: 0, scale: .72, rotateY: way * -12, x: way * 170, filter: 'blur(14px)' }),
+    center: { opacity: 1, scale: 1, rotateY: 0, x: 0, filter: 'blur(0px)' },
+    exit: (way) => ({ opacity: 0, scale: 1.16, rotateY: way * 8, x: way * -120, filter: 'blur(12px)' }),
+  };
+  return <AnimatePresence mode="sync" custom={direction}>{active && <motion.section key={id} id={id} className={`chapter chapter--${side} ${className} is-console-active`} data-index={index} style={{ '--screen': screenColors[index] }} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ type: 'spring', stiffness: 145, damping: 24, mass: .72, opacity: { duration: .24 }, filter: { duration: .3 } }}>
+    <motion.div className="screen-dock console-window">
       <div className="screen-hardware" aria-hidden="true"><i /><i /><i /><b>DISPLAY M23-{String(index).padStart(2, '0')}</b><span>◈</span></div>
       <div className="chapter__panel">
         <div className="chapter__meta"><span>CHAPTER // 0{index}</span><b>{eyebrow}</b></div>
@@ -181,7 +180,7 @@ function Section({ id, index, eyebrow, title, side = 'left', children, className
       </div>
       <div className="screen-bus" aria-hidden="true"><i /><i /><i /><i /><span /></div>
     </motion.div>
-  </section>;
+  </motion.section>}</AnimatePresence>;
 }
 
 function Featured({ items }) {
@@ -212,78 +211,87 @@ function Terminal({ open, close, projects }) {
 }
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
-  const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [travel, setTravel] = useState(0);
-  const progress = useRef(0); const reduced = useReducedMotion();
+  const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1);
+  const activeRef = useRef(0), wheelLock = useRef(false), touchStart = useRef(null); const reduced = useReducedMotion();
   const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
+  const navigate = (next) => {
+    const bounded = Math.max(0, Math.min(stations.length - 1, next));
+    if (bounded === activeRef.current) return;
+    setDirection(bounded > activeRef.current ? 1 : -1);
+    activeRef.current = bounded;
+    setActive(bounded);
+    history.replaceState(null, '', `#${stations[bounded].id}`);
+  };
   useEffect(() => {
-    const update = () => {
-      const max = document.documentElement.scrollHeight - innerHeight;
-      progress.current = max > 0 ? scrollY / max : 0;
-      setTravel(progress.current);
-      const nodes = [...document.querySelectorAll('.chapter')];
-      let nearest = 0, distance = Infinity;
-      nodes.forEach((node, i) => {
-        const rect = node.getBoundingClientRect();
-        const centerDistance = (rect.top + rect.height / 2 - innerHeight / 2) / innerHeight;
-        const absoluteDistance = Math.abs(centerDistance);
-        if (absoluteDistance < distance) { distance = absoluteDistance; nearest = i; }
-      });
-      setActive(nearest);
-    };
-    update();
-    addEventListener('scroll', update, { passive: true });
-    addEventListener('resize', update);
-    return () => { removeEventListener('scroll', update); removeEventListener('resize', update); };
+    const initial = stations.findIndex((station) => `#${station.id}` === location.hash);
+    if (initial > 0) { activeRef.current = initial; setActive(initial); }
   }, []);
   useEffect(() => {
-    const navigate = (event) => {
+    const onKey = (event) => {
       if (event.target.matches('input') || terminal) return;
-      if (event.key.toLowerCase() !== 'j' && event.key.toLowerCase() !== 'k') return;
-      const direction = event.key.toLowerCase() === 'j' ? 1 : -1;
-      const target = stations[Math.max(0, Math.min(stations.length - 1, active + direction))];
-      const node = document.getElementById(target.id);
-      if (!node) return;
-      const top = target.id === 'entry' ? 0 : node.offsetTop + node.offsetHeight / 2 - innerHeight / 2;
-      scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' });
+      const key = event.key.toLowerCase();
+      if (!['j', 'k', 'arrowright', 'arrowleft', 'pagedown', 'pageup'].includes(key)) return;
+      event.preventDefault();
+      navigate(activeRef.current + (['j', 'arrowright', 'pagedown'].includes(key) ? 1 : -1));
     };
-    addEventListener('keydown', navigate); return () => removeEventListener('keydown', navigate);
-  }, [active, terminal, reduced]);
+    const onWheel = (event) => {
+      const scrollable = event.target.closest('.chapter__panel,.node-grid,.terminal__lines');
+      if (scrollable) {
+        const canContinue = event.deltaY > 0 ? scrollable.scrollTop + scrollable.clientHeight < scrollable.scrollHeight - 2 : scrollable.scrollTop > 2;
+        if (canContinue) return;
+      }
+      if (Math.abs(event.deltaY) < 28 || wheelLock.current) return;
+      wheelLock.current = true;
+      navigate(activeRef.current + (event.deltaY > 0 ? 1 : -1));
+      setTimeout(() => { wheelLock.current = false; }, 720);
+    };
+    const onTouchStart = (event) => { touchStart.current = event.touches[0]?.clientX ?? null; };
+    const onTouchEnd = (event) => {
+      if (touchStart.current == null) return;
+      const delta = touchStart.current - (event.changedTouches[0]?.clientX ?? touchStart.current);
+      if (Math.abs(delta) > 55) navigate(activeRef.current + (delta > 0 ? 1 : -1));
+      touchStart.current = null;
+    };
+    addEventListener('keydown', onKey); addEventListener('wheel', onWheel, { passive: true });
+    addEventListener('touchstart', onTouchStart, { passive: true }); addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => { removeEventListener('keydown', onKey); removeEventListener('wheel', onWheel); removeEventListener('touchstart', onTouchStart); removeEventListener('touchend', onTouchEnd); };
+  }, [terminal]);
   return <div className="experience-shell">
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
-    <World progress={progress} reduced={reduced} /><div className="noise" /><div className="scanlines" /><CursorSignal />
-    <Hud active={active} menu={menu} setMenu={setMenu} travel={travel} />
+    <World active={active} reduced={reduced} /><div className="noise" /><div className="scanlines" /><CursorSignal />
+    <Hud active={active} menu={menu} setMenu={setMenu} navigate={navigate} />
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
-    <main>
-      <Section id="entry" index={0} eyebrow="WELCOME TO THE NEURAL FACILITY" className="hero-chapter" active={active === 0}>
+    <main className="console-stage" data-station={stations[active].code}>
+      <Section id="entry" index={0} eyebrow="WELCOME TO THE NEURAL FACILITY" className="hero-chapter" active={active === 0} direction={direction}>
         <div className="hero-kicker"><i /> AVAILABLE FOR SELECT COLLABORATIONS</div>
         <h1>THE MIND<br />ENGINEERS<br /><em>THE MACHINE.</em></h1>
         <p className="hero-lead">AI agents, full-stack systems and high-impact interfaces engineered from research core to production surface.</p>
-        <div className="hero-cta"><a href="#featured" onClick={(event) => { event.preventDefault(); const node = document.getElementById('featured'); scrollTo({ top: node.offsetTop + node.offsetHeight / 2 - innerHeight / 2, behavior: reduced ? 'auto' : 'smooth' }); }}>ENTER FACILITY <ArrowDown /></a><a href="#contact" onClick={(event) => { event.preventDefault(); const node = document.getElementById('contact'); scrollTo({ top: node.offsetTop + node.offsetHeight / 2 - innerHeight / 2, behavior: reduced ? 'auto' : 'smooth' }); }}>START A PROJECT <Send /></a></div>
+        <div className="hero-cta"><a href="#featured" onClick={(event) => { event.preventDefault(); navigate(1); }}>ENTER FACILITY <ArrowRight /></a><a href="#contact" onClick={(event) => { event.preventDefault(); navigate(6); }}>START A PROJECT <Send /></a></div>
         <div className="hero-stats"><div><b>10</b><span>YEARS PROGRAMMING</span></div><div><b>7</b><span>YEARS FRONTEND</span></div><div><b>7</b><span>YEARS AI</span></div><div><b>15+</b><span>COMPANY COLLABS</span></div></div>
         <div className="operator-seal" aria-hidden="true"><span>MER23LIN</span><b>M/23</b><small>ENGINEERED INTELLIGENCE</small></div>
       </Section>
 
-      <Section id="featured" index={1} eyebrow="SELECTED PROOF" title="FEATURED PROJECT VAULT" side="right" active={active === 1}><p className="section-lead">Real problems, explicit roles, inspectable engineering decisions and outcomes.</p><Featured items={featuredProjects} /></Section>
+      <Section id="featured" index={1} eyebrow="SELECTED PROOF" title="FEATURED PROJECT VAULT" side="right" active={active === 1} direction={direction}><p className="section-lead">Real problems, explicit roles, inspectable engineering decisions and outcomes.</p><Featured items={featuredProjects} /></Section>
 
-      <Section id="profile" index={2} eyebrow="AUTHORIZED OPERATOR" title="AMIRREZA GHAFFARIAN" active={active === 2}>
+      <Section id="profile" index={2} eyebrow="AUTHORIZED OPERATOR" title="AMIRREZA GHAFFARIAN" active={active === 2} direction={direction}>
         <div className="operator"><div className="operator__photo"><img src="https://github.com/Amirgh23.png?size=600" alt="Amirreza Ghaffarian" /><i /></div><div className="operator__copy"><h3>AI AGENT ENGINEER<br /><span>FULL-STACK DEVELOPER</span></h3><p>Engineering autonomous intelligence, production web platforms and visually ambitious digital experiences.</p><dl><div><dt>LOCATION</dt><dd>MASHHAD · IRAN</dd></div><div><dt>ACADEMIC CORE</dt><dd>M.Sc. AI &amp; ROBOTICS · 2026</dd></div><div><dt>STATUS</dt><dd>● OPERATIONAL</dd></div></dl><a href="https://jobinja.ir/user/NL-1212752" target="_blank" rel="noreferrer"><Briefcase /> SOURCE RESUME</a></div></div>
       </Section>
 
-      <Section id="skills" index={3} eyebrow="CAPABILITY MATRIX" title="ENGINEERING STACK" side="right" active={active === 3}>
+      <Section id="skills" index={3} eyebrow="CAPABILITY MATRIX" title="ENGINEERING STACK" side="right" active={active === 3} direction={direction}>
         <div className="skill-matrix">{skillGroups.map((group,i)=><article key={group.domain}><div><Code2 /><span>0{i+1}</span></div><h3>{group.domain}</h3><b>{group.signal}</b><p>{group.tools.join(' · ')}</p></article>)}</div>
       </Section>
 
-      <Section id="experience" index={4} eyebrow="PROFESSIONAL TRAJECTORY" title="EXPERIENCE LOG" active={active === 4}>
+      <Section id="experience" index={4} eyebrow="PROFESSIONAL TRAJECTORY" title="EXPERIENCE LOG" active={active === 4} direction={direction}>
         <div className="work-log">{experience.map((item,i)=><article key={`${item.company}-${item.period}`}><b>0{i+1}</b><div><small>{item.period} // {item.location}</small><h3>{item.role}</h3><h4>{item.website?<a href={item.website} target="_blank" rel="noreferrer">{item.company} ↗</a>:item.company}</h4><p>{item.description}</p><div>{item.tags.map(tag=><span key={tag}>{tag}</span>)}</div></div></article>)}</div>
         <div className="education"><GraduationCap /><span>ACADEMIC CORE</span><b>M.Sc. AI &amp; ROBOTICS · COMPLETED 2026</b><small>Islamic Azad University, Mashhad</small></div>
       </Section>
 
-      <Section id="projects" index={5} eyebrow="PUBLIC NETWORK" title="ALL PUBLIC NODES" side="right" active={active === 5}>
+      <Section id="projects" index={5} eyebrow="PUBLIC NETWORK" title="ALL PUBLIC NODES" side="right" active={active === 5} direction={direction}>
         <div className="archive-tools"><label>SEARCH NETWORK<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="NAME, LANGUAGE OR CAPABILITY" /></label><div><b>{filtered.length}</b> / {projects.length} ONLINE</div></div>
         <div className="node-grid">{filtered.map((project,i)=><a href={project.url} target="_blank" rel="noreferrer" key={project.id} style={{'--node':project.color,'clipPath':cut}}><small>{project.id} // {project.language}</small><h3>{project.title}</h3><p>{project.description}</p><span>{project.type}</span><b>{String(i+1).padStart(2,'0')}</b></a>)}</div>
       </Section>
 
-      <Section id="contact" index={6} eyebrow="FINAL TRANSMISSION" className="contact-chapter" active={active === 6}>
+      <Section id="contact" index={6} eyebrow="FINAL TRANSMISSION" className="contact-chapter" active={active === 6} direction={direction}>
         <p className="pre-manifesto">THE FUTURE IS NOT PREDICTED.</p><h2 className="manifesto" aria-label={manifestoText}>{[...manifestoText].map((char,i)=><span aria-hidden="true" key={`${char}-${i}`} className={char===' '?'space':''} style={{'--d':`${8+i%4*.8}s`,'--delay':`${-i*.73}s`}}>{char===' '?'\u00a0':char}</span>)}</h2>
         <p className="contact-lead">Have an ambitious AI, frontend or full-stack project? Establish a direct uplink.</p>
         <div className="contact-grid"><a href="tel:+989152389023"><Phone /><span><small>DIRECT LINE</small>+98 915 238 9023</span></a><a href="https://t.me/ARGHN23" target="_blank" rel="noreferrer"><Send /><span><small>TELEGRAM</small>@ARGHN23</span></a><a href="https://www.instagram.com/amir_.gh23" target="_blank" rel="noreferrer"><Instagram /><span><small>INSTAGRAM</small>@amir_.gh23</span></a></div>
