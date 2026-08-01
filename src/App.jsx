@@ -22,6 +22,7 @@ import {
 import * as THREE from 'three';
 
 const palette = ['#00f7ff', '#ff2bd6', '#8b5cf6', '#ff304f', '#39ff14'];
+const manifestoText = 'IT IS ENGINEERED.';
 
 const projects = [
   ['amirgh23.github.io', 'MER23LIN INTERFACE', 'JavaScript', 'Interactive MER23LIN — autonomous intelligence command center', 0],
@@ -453,7 +454,12 @@ export default function App() {
         {filteredProjects.length === 0 && <div className="empty-network">NO MATCHING NODE // MODIFY SEARCH SIGNAL</div>}
       </section>
 
-      <section className="manifesto"><Radio /><p>THE FUTURE IS NOT PREDICTED.</p><h2>IT IS ENGINEERED.</h2><span>— AMIRGH23 // MER23LIN</span></section>
+      <section className="manifesto"><Radio /><p>THE FUTURE IS NOT PREDICTED.</p><h2 aria-label={manifestoText}>{[...manifestoText].map((character, index) => <span
+        aria-hidden="true"
+        className={character === ' ' ? 'neon-letter neon-space' : 'neon-letter'}
+        key={`${character}-${index}`}
+        style={{ '--letter-delay': `${-((index * 1.73) % 9.4).toFixed(2)}s`, '--letter-duration': `${(7.4 + (index * 1.17) % 3.8).toFixed(2)}s` }}
+      >{character === ' ' ? '\u00a0' : character}</span>)}</h2><span>— AMIRGH23 // MER23LIN</span></section>
     </main>
 
     <footer id="contact">
