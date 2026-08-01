@@ -347,11 +347,59 @@ function NightCity({ active, reduced, travel }) {
 }
 
 function Facility({ active, reduced, travel }) {
-  return <NightCity active={active} reduced={reduced} travel={travel} />;
+  const rig = useRef();
+  const chrome = useRef();
+  const cameraTargets = [[0, .55], [.72, .72], [-.66, .86], [.54, .6], [-.5, .68], [.62, .82], [0, .62]];
+  useFrame((state) => {
+    const target = reduced ? cameraTargets[0] : cameraTargets[active];
+    const journey = reduced ? active / (stations.length - 1) : travel.current;
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, target[0], .035);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, target[1], .035);
+    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, 8.8 - journey * 1.25, .04);
+    state.camera.lookAt(0, -.35, -7);
+    if (rig.current && !reduced) rig.current.rotation.z = Math.sin(state.clock.elapsedTime * .12) * .007;
+    if (chrome.current && !reduced) {
+      chrome.current.rotation.x = state.clock.elapsedTime * .13;
+      chrome.current.rotation.y = state.clock.elapsedTime * .2;
+    }
+  });
+  const mountain = (x, scale, color) => <mesh position={[x, -1.1, -12]} scale={scale} rotation={[0, 0, x < 0 ? -.08 : .08]}>
+    <coneGeometry args={[3.2, 4.8, 5, 5]} /><meshBasicMaterial color={color} wireframe transparent opacity={.42} />
+  </mesh>;
+  return <group ref={rig}>
+    <fog attach="fog" args={['#08001d', 10, 38]} />
+    <ambientLight color="#7020ff" intensity={.85} />
+    <pointLight position={[0, 3, -8]} color="#ff3daf" intensity={38} distance={30} />
+    <pointLight position={[-7, 1, -3]} color="#00f6ff" intensity={24} distance={22} />
+
+    <mesh position={[0, 2.1, -14]}><circleGeometry args={[3.7, 64]} /><meshBasicMaterial color="#ff3b9d" toneMapped={false} /></mesh>
+    {[.65,.15,-.35,-.85,-1.35,-1.85].map((y,index)=><mesh key={y} position={[0,2.1+y,-13.92]}>
+      <planeGeometry args={[7.7-index*.35,.12+index*.035]} /><meshBasicMaterial color="#08001d" />
+    </mesh>)}
+    <pointLight position={[0, 2.1, -12.5]} color="#ff5fa8" intensity={45} distance={22} />
+
+    {mountain(-6.4,[1.35,1.1,1.1],'#8d4dff')}{mountain(-2.9,[.9,.74,.8],'#00eaff')}
+    {mountain(3.4,[1.05,.82,.9],'#ff24c8')}{mountain(7,[1.5,1.15,1.1],'#7956ff')}
+
+    <gridHelper args={[80, 80, '#ff24c8', '#4a1c86']} position={[0,-2.05,-14]} />
+    <gridHelper args={[80, 40, '#00eaff', '#12285d']} position={[0,-2.035,-14]} />
+    <mesh position={[0,-2.01,-7]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[3.1,32]} /><meshBasicMaterial color="#090019" /></mesh>
+    <mesh position={[-1.58,-1.99,-7]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[.055,32]} /><meshBasicMaterial color="#00f6ff" /></mesh>
+    <mesh position={[1.58,-1.99,-7]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[.055,32]} /><meshBasicMaterial color="#ff2dbe" /></mesh>
+    {Array.from({length:12},(_,index)=><mesh key={index} position={[0,-1.98,4-index*2.55]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[.08,1.25]} /><meshBasicMaterial color="#ffd6f6" transparent opacity={.7} /></mesh>)}
+
+    <group ref={chrome} position={[5.15,1.85,-4.8]} rotation={[.4,.2,.2]}>
+      <mesh><torusKnotGeometry args={[.72,.2,96,12]} /><meshStandardMaterial color="#d7c5ff" emissive="#9b35ff" emissiveIntensity={.75} metalness={1} roughness={.12} /></mesh>
+    </group>
+    <mesh position={[-5.2,2.15,-6.2]} rotation={[.7,.25,.35]}><octahedronGeometry args={[1.05,0]} /><meshStandardMaterial color="#071228" emissive="#00eaff" emissiveIntensity={1.4} metalness={.92} roughness={.14} wireframe /></mesh>
+    <mesh position={[-3.8,-.05,-4.4]} rotation={[Math.PI/2,0,.4]}><torusGeometry args={[.85,.045,8,64]} /><meshBasicMaterial color="#00f6ff" /></mesh>
+    <mesh position={[3.65,.1,-5.2]} rotation={[Math.PI/2,.2,-.35]}><torusGeometry args={[1.15,.05,8,64]} /><meshBasicMaterial color="#ff24c8" /></mesh>
+    <Stars radius={30} depth={18} count={850} factor={2.4} fade speed={reduced?0:.25} />
+  </group>;
 }
 
 function World({ active, reduced, travel }) {
-  return <div className="world cyber-desk" aria-hidden="true"><Canvas camera={{ position: [0, .85, 8.8], fov: 50 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+  return <div className="world retro-drive" aria-hidden="true"><Canvas camera={{ position: [0, .55, 8.8], fov: 50 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
     <Suspense fallback={null}><Facility active={active} reduced={reduced} travel={travel} /></Suspense>
   </Canvas></div>;
 }
