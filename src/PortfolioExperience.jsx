@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Line, Stars } from '@react-three/drei';
+import { Stars } from '@react-three/drei';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
@@ -40,81 +40,122 @@ function BootSequence({ done }) {
   </motion.div>;
 }
 
-function NeuralCore({ position = [0, 0, 0], scale = 1 }) {
-  const ref = useRef();
-  const arcs = useMemo(() => Array.from({ length: 14 }, (_, i) => {
-    const a = i / 14 * Math.PI * 2;
-    return [[0, 0, 0], [Math.cos(a) * (1.8 + i % 3 * .24), Math.sin(a * 2.1) * .6, Math.sin(a) * 1.8]];
-  }), []);
-  useFrame((state, delta) => {
-    if (!ref.current) return;
-    ref.current.rotation.y += delta * .22;
-    ref.current.rotation.z = Math.sin(state.clock.elapsedTime * .35) * .08;
-  });
-  return <group ref={ref} position={position} scale={scale}>
-    <Float speed={1.4} floatIntensity={.28} rotationIntensity={.25}>
-      <mesh><icosahedronGeometry args={[1.1, 2]} /><meshStandardMaterial color="#020510" emissive="#00eaff" emissiveIntensity={2.2} wireframe /></mesh>
-      <mesh><icosahedronGeometry args={[.54, 2]} /><meshStandardMaterial color="#ff24c8" emissive="#ff24c8" emissiveIntensity={3.8} /></mesh>
-    </Float>
-    {arcs.map((points, i) => <Line key={i} points={points} color={i % 2 ? '#ff24c8' : '#00eaff'} transparent opacity={.46} lineWidth={.7} />)}
-    <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[1.55, .025, 8, 96]} /><meshBasicMaterial color="#00eaff" /></mesh>
-    <mesh rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[1.85, .018, 8, 96]} /><meshBasicMaterial color="#ff24c8" /></mesh>
+function CyberBuilding({ building, index }) {
+  const { x, z, width, depth, height, color, side } = building;
+  const frontX = x + (side < 0 ? width / 2 + .012 : -width / 2 - .012);
+  const faceRotation = side < 0 ? Math.PI / 2 : -Math.PI / 2;
+  return <group>
+    <mesh position={[x, -3.45 + height / 2, z]}>
+      <boxGeometry args={[width, height, depth]} />
+      <meshStandardMaterial color={index % 3 ? '#050816' : '#090817'} metalness={.74} roughness={.48} emissive="#050711" emissiveIntensity={.7} />
+    </mesh>
+    <mesh position={[frontX, -3.25 + height * .53, z]} rotation={[0, faceRotation, 0]}>
+      <planeGeometry args={[depth * .72, height * .62]} />
+      <meshBasicMaterial color={color} transparent opacity={.12 + (index % 4) * .025} />
+    </mesh>
+    {Array.from({ length: Math.min(7, Math.max(3, Math.floor(height / 1.8))) }, (_, row) => <mesh key={row} position={[frontX + (side < 0 ? .006 : -.006), -2.8 + row * 1.15, z]} rotation={[0, faceRotation, 0]}>
+      <planeGeometry args={[depth * .62, .035]} />
+      <meshBasicMaterial color={row % 3 === 0 ? color : '#5174a5'} transparent opacity={row % 3 === 0 ? .9 : .34} />
+    </mesh>)}
+    {index % 4 === 0 && <mesh position={[frontX + (side < 0 ? .02 : -.02), -2.25 + height * .45, z + depth * .12]} rotation={[0, faceRotation, 0]}>
+      <planeGeometry args={[Math.min(2.2, depth * .62), .72]} />
+      <meshBasicMaterial color={color} transparent opacity={.9} />
+    </mesh>}
+    {index % 3 === 0 && <mesh position={[x, -3.25 + height + .7, z]}><cylinderGeometry args={[.025, .025, 1.4, 5]} /><meshBasicMaterial color={color} /></mesh>}
   </group>;
 }
 
-function DataShard({ position, color, speed = 1, scale = 1 }) {
+function RoadTraffic({ offset, lane, color, speed = 1, reduced }) {
   const ref = useRef();
-  useFrame((state, delta) => {
-    if (!ref.current) return;
-    ref.current.rotation.x += delta * .18 * speed;
-    ref.current.rotation.y += delta * .27 * speed;
-    ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * .5 * speed + position[2]) * .18;
+  useFrame((state) => {
+    if (!ref.current || reduced) return;
+    ref.current.position.z = 8 - ((state.clock.elapsedTime * speed * 8 + offset) % 68);
   });
-  return <group ref={ref} position={position} scale={scale}>
-    <mesh><octahedronGeometry args={[.55, 0]} /><meshStandardMaterial color="#02040c" emissive={color} emissiveIntensity={.7} wireframe /></mesh>
-    <mesh scale={.27}><octahedronGeometry args={[.55, 0]} /><meshBasicMaterial color={color} /></mesh>
+  return <group ref={ref} position={[lane, -3.34, 8 - offset]}>
+    <mesh><boxGeometry args={[.08, .018, 1.8]} /><meshBasicMaterial color={color} transparent opacity={.85} /></mesh>
+  </group>;
+}
+
+function FlyingVehicle({ position, color, speed, reverse = false, reduced }) {
+  const ref = useRef();
+  useFrame((state) => {
+    if (!ref.current || reduced) return;
+    const travel = (state.clock.elapsedTime * speed + position[2] * .2) % 58;
+    ref.current.position.z = reverse ? -48 + travel : 9 - travel;
+    ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * .8 + position[0]) * .12;
+  });
+  return <group ref={ref} position={position}>
+    <mesh><boxGeometry args={[.72, .16, 1.3]} /><meshStandardMaterial color="#050711" metalness={.9} roughness={.2} /></mesh>
+    <mesh position={[-.38, 0, reverse ? -.32 : .32]}><sphereGeometry args={[.055, 6, 6]} /><meshBasicMaterial color={color} /></mesh>
+    <mesh position={[.38, 0, reverse ? -.32 : .32]}><sphereGeometry args={[.055, 6, 6]} /><meshBasicMaterial color={color} /></mesh>
+  </group>;
+}
+
+function CityRain({ reduced }) {
+  const ref = useRef();
+  const positions = useMemo(() => {
+    const data = new Float32Array(900 * 3);
+    for (let i = 0; i < 900; i += 1) {
+      data[i * 3] = (Math.random() - .5) * 34;
+      data[i * 3 + 1] = Math.random() * 18 - 5;
+      data[i * 3 + 2] = -Math.random() * 62 + 8;
+    }
+    return data;
+  }, []);
+  useFrame((state) => { if (ref.current && !reduced) ref.current.position.y = -((state.clock.elapsedTime * 4) % 8); });
+  return <points ref={ref}><bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]} /></bufferGeometry><pointsMaterial color="#9eefff" size={.025} transparent opacity={.34} depthWrite={false} /></points>;
+}
+
+function NightCity({ active, reduced }) {
+  const rig = useRef();
+  const buildings = useMemo(() => {
+    let seed = 23;
+    const random = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    const colors = ['#00eaff', '#ff24c8', '#895cff', '#ff7a2f'];
+    const result = [];
+    for (let row = 0; row < 15; row += 1) for (const side of [-1, 1]) for (let lane = 0; lane < 2; lane += 1) {
+      const width = 2.7 + random() * 2.8, depth = 2.8 + random() * 3.4, height = 4.8 + random() * 10.5 + row * .12;
+      result.push({ x: side * (7 + lane * 4.4 + random() * 1.2), z: 2 - row * 4.7 - lane * 1.7, width, depth, height, side, color: colors[(row + lane + (side > 0 ? 1 : 0)) % colors.length] });
+    }
+    return result;
+  }, []);
+  const cameraTargets = [[0, .7, 8.8], [1.5, 1.1, 7.4], [-1.35, 1.45, 7.8], [1.15, .55, 7.2], [-1.1, .65, 7.5], [.9, 1.35, 7], [0, .85, 6.6]];
+  useFrame((state) => {
+    const target = reduced ? cameraTargets[0] : cameraTargets[active];
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, target[0], .03);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, target[1], .03);
+    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, target[2], .03);
+    state.camera.lookAt(0, -.55, -18);
+    if (rig.current) rig.current.position.x = THREE.MathUtils.lerp(rig.current.position.x, (active - 3) * -.16, .025);
+  });
+  return <group ref={rig}>
+    <fog attach="fog" args={['#080414', 10, 64]} />
+    <ambientLight color="#263765" intensity={.42} />
+    <hemisphereLight color="#3650a0" groundColor="#ff168f" intensity={.7} />
+    <pointLight position={[0, 6, -7]} color="#ff24c8" intensity={34} distance={38} />
+    <pointLight position={[-9, 2, -2]} color="#00eaff" intensity={28} distance={26} />
+    <pointLight position={[10, 1, -18]} color="#ff7a2f" intensity={20} distance={24} />
+    <Stars radius={80} depth={28} count={360} factor={1.2} fade speed={.08} />
+    <mesh position={[0, -3.5, -26]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[11, 78]} /><meshStandardMaterial color="#02030a" metalness={.86} roughness={.24} /></mesh>
+    <mesh position={[-5.2, -3.46, -26]}><boxGeometry args={[.08, .025, 78]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.75} /></mesh>
+    <mesh position={[5.2, -3.46, -26]}><boxGeometry args={[.08, .025, 78]} /><meshBasicMaterial color="#00eaff" transparent opacity={.75} /></mesh>
+    {[-1.8, 1.8].map((x) => <mesh key={x} position={[x, -3.455, -26]}><boxGeometry args={[.035, .02, 78]} /><meshBasicMaterial color="#755cff" transparent opacity={.35} /></mesh>)}
+    {buildings.map((building, index) => <CyberBuilding key={`${building.x}-${building.z}`} building={building} index={index} />)}
+    {Array.from({ length: 12 }, (_, index) => <RoadTraffic key={index} offset={index * 5.7} lane={index % 2 ? -1.2 : 1.2} color={index % 3 ? '#00eaff' : '#ff24c8'} speed={.72 + index % 4 * .13} reduced={reduced} />)}
+    <FlyingVehicle position={[-2.8, 1.5, -2]} color="#ff24c8" speed={3.5} reduced={reduced} />
+    <FlyingVehicle position={[3.4, 3.2, -18]} color="#00eaff" speed={2.8} reverse reduced={reduced} />
+    <FlyingVehicle position={[-.8, 5.1, -34]} color="#ff7a2f" speed={2.1} reduced={reduced} />
+    <CityRain reduced={reduced} />
+    <mesh position={[0, 8, -48]}><sphereGeometry args={[10, 32, 16]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.045} /></mesh>
   </group>;
 }
 
 function Facility({ active, reduced }) {
-  const rig = useRef();
-  const cameraTargets = [
-    [0, 0, 8], [1.8, .15, 5.8], [-1.5, .45, 6.4], [1.4, -.3, 5.9],
-    [-1.25, -.35, 6.2], [1.1, .55, 5.7], [0, .1, 5.35],
-  ];
-  useFrame((state) => {
-    const target = reduced ? cameraTargets[0] : cameraTargets[active];
-    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, target[0], .035);
-    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, target[1], .035);
-    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, target[2], .035);
-    state.camera.lookAt(0, 0, -1.5);
-    if (rig.current) {
-      rig.current.rotation.y = THREE.MathUtils.lerp(rig.current.rotation.y, active * -.13, .025);
-      rig.current.rotation.z = THREE.MathUtils.lerp(rig.current.rotation.z, (active % 2 ? 1 : -1) * .012, .025);
-    }
-  });
-  return <group ref={rig}>
-    <fog attach="fog" args={['#010207', 8, 30]} />
-    <ambientLight intensity={.18} />
-    <pointLight position={[2, 2, 5]} color="#00eaff" intensity={18} distance={15} />
-    <pointLight position={[-3, -2, -10]} color="#ff24c8" intensity={16} distance={14} />
-    <Stars radius={32} depth={32} count={900} factor={2} fade speed={.2} />
-    <gridHelper args={[80, 80, '#0a4d65', '#08101b']} position={[0, -3.7, -10]} />
-    <NeuralCore position={[2.8, .4, 0]} scale={.95} />
-    <NeuralCore position={[-2.7, .2, -14]} scale={.65} />
-    <NeuralCore position={[2.4, .2, -23]} scale={.5} />
-    <DataShard position={[-4.2, 1.8, -4]} color="#00eaff" speed={.8} />
-    <DataShard position={[4.4, -1.2, -11]} color="#ff24c8" speed={1.2} scale={.7} />
-    <DataShard position={[-4.5, -.2, -18]} color="#9b6cff" speed={.65} scale={1.25} />
-    <DataShard position={[4.1, 1.4, -25]} color="#00eaff" speed={1.4} scale={.65} />
-    {Array.from({ length: 10 }, (_, i) => <mesh key={i} position={[0, 0, 3 - i * 3.4]} rotation={[Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[5.1, .018, 6, 96]} /><meshBasicMaterial color={i % 2 ? '#ff24c8' : '#00eaff'} transparent opacity={.16} />
-    </mesh>)}
-  </group>;
+  return <NightCity active={active} reduced={reduced} />;
 }
 
 function World({ active, reduced }) {
-  return <div className="world" aria-hidden="true"><Canvas camera={{ position: [0, 0, 8], fov: 48 }} dpr={[1, 1.45]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+  return <div className="world night-city" aria-hidden="true"><Canvas camera={{ position: [0, .7, 8.8], fov: 52 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
     <Suspense fallback={null}><Facility active={active} reduced={reduced} /></Suspense>
   </Canvas></div>;
 }
