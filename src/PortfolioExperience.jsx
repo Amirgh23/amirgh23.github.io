@@ -228,46 +228,121 @@ function HolographicCore({ reduced }) {
   </group>;
 }
 
+function DeskMonitor({ position, rotation = [0, 0, 0], color = '#00eaff', wide = false }) {
+  const width = wide ? 5.2 : 3.75, height = wide ? 2.75 : 2.45;
+  return <group position={position} rotation={rotation}>
+    <mesh><boxGeometry args={[width + .22, height + .22, .18]} /><meshStandardMaterial color="#03050c" metalness={.9} roughness={.2} /></mesh>
+    <mesh position={[0, 0, .101]}><planeGeometry args={[width, height]} /><meshBasicMaterial color="#020713" /></mesh>
+    <mesh position={[0, height * .32, .112]}><planeGeometry args={[width * .84, .03]} /><meshBasicMaterial color={color} /></mesh>
+    {Array.from({ length: 6 }, (_, index) => <mesh key={index} position={[-width * .12 + (index % 2) * width * .2, height * .14 - index * .16, .113]}><planeGeometry args={[width * (.42 - index % 3 * .06), .026]} /><meshBasicMaterial color={index % 3 === 0 ? '#ff24c8' : color} transparent opacity={.34 + index % 2 * .28} /></mesh>)}
+    <mesh position={[width * .29, -height * .18, .113]}><planeGeometry args={[width * .22, height * .24]} /><meshBasicMaterial color={color} transparent opacity={.16} /></mesh>
+    <mesh position={[0, -height / 2 - .55, -.05]}><boxGeometry args={[.16, .95, .16]} /><meshStandardMaterial color="#111726" metalness={.9} /></mesh>
+    <mesh position={[0, -height / 2 - 1.02, .05]}><boxGeometry args={[1.45, .09, .62]} /><meshStandardMaterial color="#090d17" metalness={.88} /></mesh>
+    <pointLight position={[0, 0, 1.2]} color={color} intensity={5} distance={5} />
+  </group>;
+}
+
+function MechanicalKeyboard() {
+  return <group position={[0, -1.58, -2.15]} rotation={[-.04, 0, 0]}>
+    <mesh><boxGeometry args={[4.6, .18, 1.48]} /><meshStandardMaterial color="#050711" metalness={.82} roughness={.3} /></mesh>
+    {Array.from({ length: 48 }, (_, index) => {
+      const row = Math.floor(index / 12), column = index % 12;
+      return <mesh key={index} position={[-1.98 + column * .36, .115, -.52 + row * .34]}><boxGeometry args={[.29, .075, .25]} /><meshStandardMaterial color="#11172a" emissive={(row + column) % 4 === 0 ? '#ff24c8' : '#00eaff'} emissiveIntensity={.55} /></mesh>;
+    })}
+    <mesh position={[0, .13, .68]}><boxGeometry args={[2.15, .055, .035]} /><meshBasicMaterial color="#895cff" /></mesh>
+  </group>;
+}
+
+function RgbFan({ y, color, reduced, speed }) {
+  const blades = useRef();
+  useFrame((state) => { if (blades.current && !reduced) blades.current.rotation.z = state.clock.elapsedTime * speed; });
+  return <group position={[0, y, 0]}>
+    <mesh><torusGeometry args={[.46, .035, 7, 28]} /><meshBasicMaterial color={color} /></mesh>
+    <group ref={blades}>
+      {Array.from({ length: 5 }, (_, blade) => <mesh key={blade} rotation={[0, 0, blade / 5 * Math.PI * 2]} position={[.22, 0, 0]}><boxGeometry args={[.36, .055, .025]} /><meshBasicMaterial color={color} transparent opacity={.45} /></mesh>)}
+    </group>
+  </group>;
+}
+
+function RgbTower({ reduced }) {
+  return <group position={[5.1, -.15, -4.85]}>
+    <mesh><boxGeometry args={[2.15, 4.8, 2.5]} /><meshStandardMaterial color="#03050c" metalness={.86} roughness={.2} transparent opacity={.92} /></mesh>
+    <mesh position={[-1.085, 0, 0]} rotation={[0, Math.PI / 2, 0]}><planeGeometry args={[2.2, 4.4]} /><meshBasicMaterial color="#00eaff" transparent opacity={.07} /></mesh>
+    <group position={[0, .25, 1.27]}>
+      <RgbFan y={1.15} color="#00eaff" reduced={reduced} speed={1.6} />
+      <RgbFan y={0} color="#ff24c8" reduced={reduced} speed={-1.35} />
+      <RgbFan y={-1.15} color="#00eaff" reduced={reduced} speed={1.48} />
+    </group>
+    <mesh position={[0, -2.3, 1.29]}><boxGeometry args={[1.75, .035, .03]} /><meshBasicMaterial color="#895cff" /></mesh>
+  </group>;
+}
+
+function DeskHologram({ reduced }) {
+  const ref = useRef();
+  useFrame((state) => { if (ref.current && !reduced) ref.current.rotation.y = state.clock.elapsedTime * .42; });
+  return <group position={[-3.55, -.86, -3.25]}>
+    <mesh><cylinderGeometry args={[.72, .86, .18, 24]} /><meshStandardMaterial color="#07101b" metalness={.9} emissive="#00eaff" emissiveIntensity={.28} /></mesh>
+    <group ref={ref} position={[0, 1.25, 0]}>
+      <mesh><icosahedronGeometry args={[.72, 1]} /><meshBasicMaterial color="#00eaff" wireframe transparent opacity={.76} /></mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[1.05, .022, 7, 48]} /><meshBasicMaterial color="#ff24c8" /></mesh>
+      <mesh rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[.9, .018, 7, 44]} /><meshBasicMaterial color="#895cff" /></mesh>
+    </group>
+    <pointLight position={[0, 1.2, 0]} color="#00eaff" intensity={15} distance={8} />
+  </group>;
+}
+
+function NeonCable({ points, color }) {
+  const curve = useMemo(() => new THREE.CatmullRomCurve3(points.map((point) => new THREE.Vector3(...point))), [points]);
+  return <mesh><tubeGeometry args={[curve, 48, .022, 7, false]} /><meshBasicMaterial color={color} transparent opacity={.7} /></mesh>;
+}
+
+function DeskDust({ reduced }) {
+  const ref = useRef();
+  const positions = useMemo(() => {
+    const data = new Float32Array(420 * 3);
+    for (let index = 0; index < 420; index += 1) { data[index * 3] = (Math.random() - .5) * 20; data[index * 3 + 1] = Math.random() * 9 - 2.5; data[index * 3 + 2] = -Math.random() * 14 + 3; }
+    return data;
+  }, []);
+  useFrame((state) => { if (ref.current && !reduced) ref.current.rotation.y = Math.sin(state.clock.elapsedTime * .08) * .035; });
+  return <points ref={ref}><bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]} /></bufferGeometry><pointsMaterial color="#9fefff" size={.02} transparent opacity={.28} depthWrite={false} /></points>;
+}
+
 function NightCity({ active, reduced, travel }) {
   const rig = useRef();
-  const spires = useMemo(() => {
-    let seed = 2319;
-    const random = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-    const colors = ['#00eaff', '#ff24c8', '#895cff'];
-    const result = [];
-    for (let row = 0; row < 19; row += 1) for (const side of [-1, 1]) {
-      const width = 1.8 + random() * 2.15, height = 6.5 + random() * 11.5;
-      result.push({ x: side * (6.7 + random() * 4.7), z: 5 - row * 3.85, width, height, lean: side * (.018 + random() * .035), color: colors[(row + (side > 0 ? 1 : 0)) % colors.length] });
-    }
-    return result;
-  }, []);
-  const cameraTargets = [[0, .7, 8.8], [1.5, 1.1, 7.4], [-1.35, 1.45, 7.8], [1.15, .55, 7.2], [-1.1, .65, 7.5], [.9, 1.35, 7], [0, .85, 6.6]];
+  const cameraTargets = [[0, .85], [1.15, 1.05], [-1.05, 1.25], [.82, .72], [-.88, .78], [.68, 1.15], [0, .92]];
   useFrame((state) => {
     const target = reduced ? cameraTargets[0] : cameraTargets[active];
     const journey = reduced ? active / (stations.length - 1) : travel.current;
-    const targetZ = 8.8 - journey * 48;
+    const targetZ = 8.8 - journey * 4.25;
     state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, target[0], .03);
     state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, target[1], .03);
     state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, .045);
-    state.camera.lookAt(target[0] * .12, -.55, targetZ - 20);
-    if (rig.current) rig.current.position.x = THREE.MathUtils.lerp(rig.current.position.x, (active - 3) * -.16, .025);
+    state.camera.lookAt(target[0] * .08, -.55, -5.1);
+    if (rig.current) rig.current.position.x = THREE.MathUtils.lerp(rig.current.position.x, (active - 3) * -.06, .025);
   });
   return <group ref={rig}>
-    <fog attach="fog" args={['#04020c', 9, 58]} />
-    <ambientLight color="#24376c" intensity={.38} />
-    <hemisphereLight color="#2d4e9d" groundColor="#ca0a7e" intensity={.6} />
-    <pointLight position={[-7, 5, -5]} color="#00eaff" intensity={26} distance={30} />
-    <pointLight position={[8, 1, -18]} color="#ff24c8" intensity={30} distance={32} />
-    <Stars radius={75} depth={26} count={520} factor={1.1} fade speed={.06} />
-    <mesh position={[0, -3.52, -28]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[12.5, 82]} /><meshStandardMaterial color="#010209" metalness={.96} roughness={.16} /></mesh>
-    {[-5.55, -2.75, 0, 2.75, 5.55].map((x, index) => <mesh key={x} position={[x, -3.47, -28]}><boxGeometry args={[index === 2 ? .055 : .025, .02, 82]} /><meshBasicMaterial color={index % 2 ? '#ff24c8' : '#00eaff'} transparent opacity={index === 2 ? .55 : .3} /></mesh>)}
-    {Array.from({ length: 18 }, (_, index) => <mesh key={index} position={[0, -3.465, 6 - index * 4.5]}><boxGeometry args={[11.1, .02, .025]} /><meshBasicMaterial color={index % 3 ? '#263969' : '#a879ff'} transparent opacity={index % 3 ? .22 : .48} /></mesh>)}
-    {spires.map((item, index) => <DataSpire key={`${item.x}-${item.z}`} item={item} index={index} />)}
-    {Array.from({ length: 9 }, (_, index) => <NeonGateway key={index} z={3 - index * 8.5} index={index} />)}
-    {Array.from({ length: 16 }, (_, index) => <DataRunner key={index} offset={index * 4.35} lane={[-4.4, -3.2, -1.35, 1.35, 3.2, 4.4][index % 6]} color={index % 2 ? '#ff24c8' : '#00eaff'} reduced={reduced} />)}
-    <HolographicCore reduced={reduced} />
-    <CityRain reduced={reduced} />
-    <mesh position={[0, 7.5, -55]}><circleGeometry args={[8.5, 48]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.065} /></mesh>
+    <fog attach="fog" args={['#03020a', 11, 31]} />
+    <ambientLight color="#263d75" intensity={.5} />
+    <hemisphereLight color="#3158a6" groundColor="#a90d72" intensity={.62} />
+    <pointLight position={[-6, 4, -3]} color="#00eaff" intensity={30} distance={24} />
+    <pointLight position={[6, 1, -5]} color="#ff24c8" intensity={34} distance={25} />
+    <mesh position={[0, 1.2, -10.8]}><planeGeometry args={[22, 11]} /><meshStandardMaterial color="#03040b" metalness={.72} roughness={.44} /></mesh>
+    <mesh position={[0, 1.6, -10.68]}><planeGeometry args={[15.6, 7]} /><meshBasicMaterial color="#14092a" transparent opacity={.72} /></mesh>
+    {Array.from({ length: 14 }, (_, index) => <mesh key={index} position={[-7.2 + index * 1.1, -1.05 + index % 4 * .5, -10.56]}><boxGeometry args={[.72, 1.4 + index % 5 * .55, .08]} /><meshBasicMaterial color={index % 3 === 0 ? '#ff24c8' : '#00eaff'} transparent opacity={.12 + index % 2 * .08} /></mesh>)}
+    <mesh position={[0, -2.04, -4.8]}><boxGeometry args={[14.7, .42, 6.4]} /><meshStandardMaterial color="#050711" metalness={.9} roughness={.22} /></mesh>
+    <mesh position={[0, -1.82, -4.8]}><boxGeometry args={[14.35, .035, 6.05]} /><meshBasicMaterial color="#111a2d" /></mesh>
+    <mesh position={[0, -2.28, -4.8]}><boxGeometry args={[13.8, .04, 5.7]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.58} /></mesh>
+    <mesh position={[-6.2, -4.1, -4.8]}><boxGeometry args={[.5, 4.1, 1.1]} /><meshStandardMaterial color="#080b14" metalness={.85} /></mesh>
+    <mesh position={[6.2, -4.1, -4.8]}><boxGeometry args={[.5, 4.1, 1.1]} /><meshStandardMaterial color="#080b14" metalness={.85} /></mesh>
+    <DeskMonitor position={[0, .18, -6.35]} color="#00eaff" wide />
+    <DeskMonitor position={[-4.25, .08, -6.15]} rotation={[0, .28, 0]} color="#ff24c8" />
+    <DeskMonitor position={[4.05, .14, -6.4]} rotation={[0, -.28, 0]} color="#895cff" />
+    <MechanicalKeyboard />
+    <RgbTower reduced={reduced} />
+    <DeskHologram reduced={reduced} />
+    <NeonCable points={[[-2.1,-1.76,-2.8],[-2.7,-1.7,-3.6],[-1.9,-1.72,-5.4],[0,-1.75,-6.2]]} color="#00eaff" />
+    <NeonCable points={[[2.25,-1.76,-2.65],[3.1,-1.68,-3.3],[2.6,-1.72,-4.7],[4.8,-1.7,-5.2]]} color="#ff24c8" />
+    <DeskDust reduced={reduced} />
   </group>;
 }
 
@@ -276,7 +351,7 @@ function Facility({ active, reduced, travel }) {
 }
 
 function World({ active, reduced, travel }) {
-  return <div className="world night-city" aria-hidden="true"><Canvas camera={{ position: [0, .7, 8.8], fov: 52 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+  return <div className="world cyber-desk" aria-hidden="true"><Canvas camera={{ position: [0, .85, 8.8], fov: 50 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
     <Suspense fallback={null}><Facility active={active} reduced={reduced} travel={travel} /></Suspense>
   </Canvas></div>;
 }
