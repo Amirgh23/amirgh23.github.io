@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Line, Stars } from '@react-three/drei';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
 import {
   ArrowDown, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
   Instagram, Linkedin, Menu, Phone, Send, Terminal as TerminalIcon, X,
@@ -159,16 +159,28 @@ function CursorSignal() {
 }
 
 function Section({ id, index, eyebrow, title, side = 'left', children, className = '', active = false }) {
+  const sectionRef = useRef();
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
+  const travel = useSpring(scrollYProgress, { stiffness: 92, damping: 26, mass: .34, restDelta: .0008 });
+  const scale = useTransform(travel, [0, .2, .38, .5, .62, .8, 1], [.16, .32, .72, 1, .72, .32, .16]);
+  const opacity = useTransform(travel, [0, .16, .34, .5, .66, .84, 1], [0, .05, .72, 1, .72, .05, 0]);
+  const blur = useTransform(travel, [0, .28, .5, .72, 1], ['blur(10px)', 'blur(4px)', 'blur(0px)', 'blur(4px)', 'blur(10px)']);
+  const y = useTransform(travel, [0, .5, 1], ['calc(-50% - 22px)', '-50%', 'calc(-50% + 22px)']);
+  const x = useTransform(travel, [0, .5, 1], side === 'left' ? [-90, 0, 70] : [90, 0, -70]);
+  const rotateY = useTransform(travel, [0, .5, 1], side === 'left' ? [9, 0, -6] : [-9, 0, 6]);
   const screenColors = ['#00eaff', '#ff24c8', '#00eaff', '#9b6cff', '#00eaff', '#ff24c8', '#00eaff'];
-  return <section id={id} className={`chapter chapter--${side} ${className} ${active ? 'is-spatial-active' : ''}`} data-index={index} style={{ '--screen': screenColors[index] }}>
-    <div className="screen-dock">
+  const centered = className.includes('contact-chapter');
+  const spatialStyle = index === 0 ? { opacity: 1, scale: 1, filter: 'blur(0px)', x: 0, y: 0, rotateY: 0 } : reduceMotion ? { opacity: 1, scale: 1, filter: 'blur(0px)', x: centered ? '-50%' : 0, y: '-50%', rotateY: 0 } : { scale, opacity, filter: blur, x: centered ? '-50%' : x, y, rotateY };
+  return <section ref={sectionRef} id={id} className={`chapter chapter--${side} ${className} ${active ? 'is-spatial-active' : ''}`} data-index={index} style={{ '--screen': screenColors[index], position: 'relative' }}>
+    <motion.div className="screen-dock spatial-framer" style={spatialStyle}>
       <div className="screen-hardware" aria-hidden="true"><i /><i /><i /><b>DISPLAY M23-{String(index).padStart(2, '0')}</b><span>◈</span></div>
       <div className="chapter__panel">
         <div className="chapter__meta"><span>CHAPTER // 0{index}</span><b>{eyebrow}</b></div>
         {title && <h2>{title}</h2>}{children}
       </div>
       <div className="screen-bus" aria-hidden="true"><i /><i /><i /><i /><span /></div>
-    </div>
+    </motion.div>
   </section>;
 }
 
@@ -215,16 +227,6 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
         const centerDistance = (rect.top + rect.height / 2 - innerHeight / 2) / innerHeight;
         const absoluteDistance = Math.abs(centerDistance);
         if (absoluteDistance < distance) { distance = absoluteDistance; nearest = i; }
-        if (i === 0) return;
-        const intensity = Math.max(0, Math.min(1, 1 - absoluteDistance / .95));
-        const eased = intensity * intensity * (3 - 2 * intensity);
-        const dock = node.querySelector('.screen-dock');
-        if (!dock) return;
-        dock.style.setProperty('--spatial-scale', (.24 + eased * .76).toFixed(3));
-        dock.style.setProperty('--spatial-opacity', Math.max(0, (eased - .06) / .94).toFixed(3));
-        dock.style.setProperty('--spatial-blur', `${((1 - eased) * 8).toFixed(2)}px`);
-        dock.style.setProperty('--spatial-y', `${(centerDistance * 62).toFixed(1)}px`);
-        dock.style.setProperty('--spatial-z', String(5 + Math.round(eased * 12)));
       });
       setActive(nearest);
     };
