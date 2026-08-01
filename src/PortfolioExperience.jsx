@@ -181,9 +181,9 @@ function CyberAudioToggle() {
     const compressor = context.createDynamicsCompressor();
     const delay = context.createDelay(.6);
     const feedback = context.createGain();
-    master.gain.value = .16;
-    delay.delayTime.value = .24;
-    feedback.gain.value = .26;
+    master.gain.value = .13;
+    delay.delayTime.value = .115;
+    feedback.gain.value = .18;
     delay.connect(feedback); feedback.connect(delay); delay.connect(master);
     master.connect(compressor); compressor.connect(context.destination);
 
@@ -193,30 +193,43 @@ function CyberAudioToggle() {
       const filter = context.createBiquadFilter();
       const now = context.currentTime;
       oscillator.type = type; oscillator.frequency.value = frequency; oscillator.detune.value = detune;
-      filter.type = 'lowpass'; filter.frequency.value = type === 'sawtooth' ? 520 : 1450; filter.Q.value = 3.5;
-      gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(level, now + .018); gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+      filter.type = 'lowpass'; filter.frequency.value = type === 'square' ? 4200 : 1200; filter.Q.value = 2.5;
+      gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(level, now + .006); gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
       oscillator.connect(filter); filter.connect(gain); gain.connect(master); gain.connect(delay);
       oscillator.start(now); oscillator.stop(now + duration + .03);
     };
-    const padFilter = context.createBiquadFilter();
-    const padGain = context.createGain();
-    padFilter.type = 'lowpass'; padFilter.frequency.value = 240; padFilter.Q.value = 4;
-    padGain.gain.value = .014; padFilter.connect(padGain); padGain.connect(master);
-    [55, 82.41].forEach((frequency, index) => {
+    const noiseBuffer = context.createBuffer(1, Math.floor(context.sampleRate * .055), context.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+    for (let index = 0; index < noiseData.length; index += 1) noiseData[index] = Math.random() * 2 - 1;
+    const chipHat = (level = .026) => {
+      const source = context.createBufferSource();
+      const filter = context.createBiquadFilter();
+      const gain = context.createGain();
+      const now = context.currentTime;
+      source.buffer = noiseBuffer; filter.type = 'highpass'; filter.frequency.value = 4200;
+      gain.gain.setValueAtTime(level, now); gain.gain.exponentialRampToValueAtTime(.0001, now + .045);
+      source.connect(filter); filter.connect(gain); gain.connect(master); source.start(now);
+    };
+    const chipKick = () => {
       const oscillator = context.createOscillator();
-      oscillator.type = 'sawtooth'; oscillator.frequency.value = frequency; oscillator.detune.value = index ? 6 : -6;
-      oscillator.connect(padFilter); oscillator.start();
-    });
-    const sequence = [110, 130.81, 164.81, 196, 164.81, 130.81, 220, 196];
+      const gain = context.createGain();
+      const now = context.currentTime;
+      oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(135, now); oscillator.frequency.exponentialRampToValueAtTime(46, now + .105);
+      gain.gain.setValueAtTime(.11, now); gain.gain.exponentialRampToValueAtTime(.0001, now + .12);
+      oscillator.connect(gain); gain.connect(master); oscillator.start(now); oscillator.stop(now + .13);
+    };
+    const sequence = [261.63, 392, 523.25, 622.25, 311.13, 466.16, 622.25, 783.99, 349.23, 523.25, 698.46, 523.25, 293.66, 440, 587.33, 440];
+    const bass = [65.41, 77.78, 87.31, 73.42];
     let step = 0;
     const pulse = () => {
-      tone(sequence[step % sequence.length], .22, .052, step % 4 === 3 ? 'square' : 'triangle', step % 2 ? 5 : -5);
-      if (step % 4 === 0) tone(sequence[step % sequence.length] / 2, .48, .068, 'sawtooth');
-      if (step % 2 === 1) tone(1760 + (step % 3) * 220, .035, .018, 'square');
+      tone(sequence[step % sequence.length], .105, .052, 'square', step % 2 ? 4 : -4);
+      if (step % 4 === 0) { chipKick(); tone(bass[(step / 4) % bass.length], .38, .078, 'triangle'); }
+      if (step % 2 === 1) chipHat(step % 4 === 3 ? .032 : .022);
+      if (step % 8 === 6) tone(sequence[step % sequence.length] * 2, .07, .018, 'square');
       step += 1;
     };
     pulse();
-    engine.current = { context, timer: setInterval(pulse, 285) };
+    engine.current = { context, timer: setInterval(pulse, 142) };
     setEnabled(true);
   };
   useEffect(() => () => {
@@ -226,7 +239,7 @@ function CyberAudioToggle() {
     engine.current = null;
   }, []);
   const toggle = () => { if (enabled) stopAudio(); else startAudio().catch(() => setEnabled(false)); };
-  return <button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn cyber music off' : 'Turn cyber music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{enabled ? 'AUDIO ON' : 'AUDIO OFF'}</span></button>;
+  return <button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn 8-bit arcade music off' : 'Turn 8-bit arcade music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{enabled ? '8-BIT ON' : '8-BIT OFF'}</span></button>;
 }
 
 function Hud({ active, menu, setMenu, navigate, cityProgress }) {
