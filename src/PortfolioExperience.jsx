@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
   Instagram, Linkedin, Menu, Phone, Send, Terminal as TerminalIcon, X,
@@ -182,8 +182,8 @@ function Hud({ active, menu, setMenu, navigate, cityProgress }) {
     <div className="flight-deck" aria-live="polite">
       <div className="flight-deck__station"><small>CURRENT STATION</small><b>{station.code} // {station.label}</b></div>
       <button className="flight-deck__step" onClick={() => navigate(active - 1)} disabled={active === 0} aria-label="Previous station"><ArrowLeft /></button>
-      <div className="flight-deck__route" style={{ '--city-progress': `${cityProgress * 100}%` }}>{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
-      <div className="flight-deck__percent">{String(active + 1).padStart(2, '0')}<small>/ {String(stations.length).padStart(2, '0')} NODES</small></div>
+      <div className="flight-deck__route" role="progressbar" aria-label="City journey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(cityProgress * 100)} style={{ '--city-progress': `${cityProgress * 100}%` }}><span className="flight-deck__runner" style={{ left: `${cityProgress * 100}%` }} />{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
+      <div className="flight-deck__percent">{String(Math.round(cityProgress * 100)).padStart(2, '0')}<small>NODE {String(active + 1).padStart(2, '0')} / {String(stations.length).padStart(2, '0')}</small></div>
       <button className="flight-deck__step" onClick={() => navigate(active + 1)} disabled={active === stations.length - 1} aria-label="Next station"><ArrowRight /></button>
       <div className="flight-deck__keys">SCROLL: DRIVE · SHIFT+SCROLL: PANEL</div>
     </div>
@@ -255,22 +255,47 @@ function Terminal({ open, close, projects }) {
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
   const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1), [cityProgress, setCityProgress] = useState(0);
-  const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null); const reduced = useReducedMotion();
+  const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null), snapTimer = useRef(null), routeTarget = useRef(null), scrollAnimation = useRef(null); const reduced = useReducedMotion();
   const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
-  const navigate = (next) => {
-    const bounded = Math.max(0, Math.min(stations.length - 1, next));
-    const targetProgress = bounded / (stations.length - 1);
-    const maxScroll = document.documentElement.scrollHeight - innerHeight;
-    travelRef.current = targetProgress;
-    setCityProgress(targetProgress);
-    if (bounded !== activeRef.current) {
-      setDirection(bounded > activeRef.current ? 1 : -1);
-      activeRef.current = bounded;
-      setActive(bounded);
-      history.replaceState(null, '', `#${stations[bounded].id}`);
-    }
-    scrollTo({ top: maxScroll * targetProgress, behavior: 'auto' });
+  const setStation = (bounded) => {
+    if (bounded === activeRef.current) return;
+    setDirection(bounded > activeRef.current ? 1 : -1);
+    activeRef.current = bounded;
+    setActive(bounded);
+    history.replaceState(null, '', `#${stations[bounded].id}`);
   };
+  const driveToCheckpoint = (next, announce = true) => {
+    const bounded = Math.max(0, Math.min(stations.length - 1, next));
+    const checkpoint = bounded / (stations.length - 1);
+    clearTimeout(snapTimer.current);
+    scrollAnimation.current?.stop();
+    routeTarget.current = bounded;
+    if (announce) setStation(bounded);
+    const updateRoute = (progress) => {
+      travelRef.current = progress;
+      setCityProgress(progress);
+      const maxScroll = document.documentElement.scrollHeight - innerHeight;
+      scrollTo({ top: maxScroll * progress, behavior: 'instant' });
+    };
+    if (reduced) {
+      updateRoute(checkpoint);
+      routeTarget.current = null;
+      if (!announce) setStation(bounded);
+      return;
+    }
+    const distance = Math.abs(checkpoint - travelRef.current);
+    scrollAnimation.current = animate(travelRef.current, checkpoint, {
+      duration: .52 + distance * .58,
+      ease: [.22, 1, .36, 1],
+      onUpdate: updateRoute,
+      onComplete: () => {
+        updateRoute(checkpoint);
+        routeTarget.current = null;
+        if (!announce) setStation(bounded);
+      },
+    });
+  };
+  const navigate = (next) => driveToCheckpoint(next, true);
   useEffect(() => {
     const initial = stations.findIndex((station) => `#${station.id}` === location.hash);
     const initialProgress = initial > 0 ? initial / (stations.length - 1) : 0;
@@ -283,20 +308,24 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       travelRef.current = nextProgress;
       setCityProgress(nextProgress);
       const nextStation = Math.round(nextProgress * (stations.length - 1));
-      if (nextStation !== activeRef.current) {
-        setDirection(nextStation > activeRef.current ? 1 : -1);
-        activeRef.current = nextStation;
-        setActive(nextStation);
-        history.replaceState(null, '', `#${stations[nextStation].id}`);
+      if (routeTarget.current == null && nextStation !== activeRef.current) {
+        setStation(nextStation);
       }
+      clearTimeout(snapTimer.current);
+      if (!reduced && routeTarget.current == null) snapTimer.current = setTimeout(() => {
+        const nearestStation = Math.round(travelRef.current * (stations.length - 1));
+        const checkpoint = nearestStation / (stations.length - 1);
+        if (Math.abs(travelRef.current - checkpoint) < .006) return;
+        driveToCheckpoint(nearestStation, false);
+      }, 220);
     };
     requestAnimationFrame(() => {
       scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * initialProgress, behavior: 'auto' });
       syncCityToScroll();
     });
     addEventListener('scroll', syncCityToScroll, { passive: true });
-    return () => removeEventListener('scroll', syncCityToScroll);
-  }, []);
+    return () => { clearTimeout(snapTimer.current); scrollAnimation.current?.stop(); removeEventListener('scroll', syncCityToScroll); };
+  }, [reduced]);
   useEffect(() => {
     const onKey = (event) => {
       if (event.target.matches('input') || terminal) return;
@@ -318,6 +347,8 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
         panel.scrollTop += event.deltaY;
         return;
       }
+      scrollAnimation.current?.stop();
+      routeTarget.current = null;
       event.preventDefault();
       scrollTo({ top: scrollY + event.deltaY * .72, behavior: 'auto' });
     };
