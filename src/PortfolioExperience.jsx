@@ -164,11 +164,16 @@ function CursorSignal() {
 }
 
 function Section({ id, index, eyebrow, title, side = 'left', children, className = '' }) {
-  return <section id={id} className={`chapter chapter--${side} ${className}`} data-index={index}>
-    <motion.div className="chapter__panel" initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: .2 }} transition={{ duration: .55 }}>
-      <div className="chapter__meta"><span>CHAPTER // 0{index}</span><b>{eyebrow}</b></div>
-      {title && <h2>{title}</h2>}{children}
-    </motion.div>
+  const screenColors = ['#00eaff', '#ff24c8', '#00eaff', '#9b6cff', '#00eaff', '#ff24c8', '#00eaff'];
+  return <section id={id} className={`chapter chapter--${side} ${className}`} data-index={index} style={{ '--screen': screenColors[index] }}>
+    <div className="screen-dock">
+      <div className="screen-hardware" aria-hidden="true"><i /><i /><i /><b>DISPLAY M23-{String(index).padStart(2, '0')}</b><span>◈</span></div>
+      <motion.div className="chapter__panel" initial={{ opacity: 0, y: 35, scale: .985 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ amount: .2 }} transition={{ duration: .55 }}>
+        <div className="chapter__meta"><span>CHAPTER // 0{index}</span><b>{eyebrow}</b></div>
+        {title && <h2>{title}</h2>}{children}
+      </motion.div>
+      <div className="screen-bus" aria-hidden="true"><i /><i /><i /><i /><span /></div>
+    </div>
   </section>;
 }
 
