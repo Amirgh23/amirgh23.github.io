@@ -25,7 +25,7 @@
   text-shadow:none;
   animation:none;
 }
-.manifesto h2 .neon-letter{display:inline-block;margin-top:0;font:inherit;color:transparent;-webkit-text-stroke:1.35px var(--pink);text-shadow:0 0 5px rgba(255,43,214,.68),0 0 17px rgba(255,43,214,.34),0 0 38px rgba(255,43,214,.16);animation:neon-letter-flicker var(--letter-duration) steps(1,end) var(--letter-delay) infinite;will-change:opacity,filter,text-shadow}
+.manifesto h2 .neon-letter{display:inline-block;margin-top:0;font:inherit;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:1.45px var(--pink);paint-order:stroke fill;text-shadow:0 0 4px rgba(255,43,214,.78),0 0 13px rgba(255,43,214,.42),0 0 30px rgba(255,43,214,.22);animation:neon-letter-flicker var(--letter-duration) steps(1,end) var(--letter-delay) infinite;will-change:opacity,filter,text-shadow}
 .manifesto h2 .neon-space{width:.3em;-webkit-text-stroke:0;text-shadow:none;animation:none}
 .contact-channels>a,.socials>a{
   --lamp-color:var(--cyan);
@@ -48,7 +48,7 @@
   clip-path:inherit;
   opacity:.94;
   filter:drop-shadow(0 0 3px color-mix(in srgb,var(--lamp-color) 62%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--lamp-color) 28%,transparent));
-  animation:neon-border-lamp 1.5s var(--lamp-delay) infinite alternate;
+  animation:neon-border-lamp 10.8s steps(1,end) var(--lamp-delay) infinite;
   will-change:opacity,filter;
 }
 .contact-channels>a>*,.socials>a>*{position:relative;z-index:1}
@@ -59,14 +59,16 @@
   filter:drop-shadow(0 0 5px color-mix(in srgb,var(--lamp-color) 75%,transparent)) drop-shadow(0 0 14px color-mix(in srgb,var(--lamp-color) 36%,transparent));
 }
 @keyframes neon-letter-flicker{
-  0%,72%,72.8%,74.1%,75%,100%{opacity:1;filter:brightness(1);text-shadow:0 0 5px rgba(255,43,214,.68),0 0 17px rgba(255,43,214,.34),0 0 38px rgba(255,43,214,.16)}
-  72.35%,73.55%{opacity:.46;filter:brightness(.58);text-shadow:0 0 3px rgba(255,43,214,.22)}
-  72.6%{opacity:.18;filter:brightness(.34);text-shadow:none}
-  74.55%{opacity:.86;filter:brightness(1.45);text-shadow:0 0 7px rgba(255,255,255,.5),0 0 15px rgba(255,43,214,.72),0 0 34px rgba(255,43,214,.3)}
+  0%,86%,86.5%,87.15%,87.75%,100%{opacity:1;filter:brightness(1);text-shadow:0 0 4px rgba(255,43,214,.78),0 0 13px rgba(255,43,214,.42),0 0 30px rgba(255,43,214,.22)}
+  86.22%,87.02%{opacity:.58;filter:brightness(.68);text-shadow:0 0 3px rgba(255,43,214,.28)}
+  86.38%{opacity:.3;filter:brightness(.48);text-shadow:0 0 2px rgba(255,43,214,.18)}
+  87.42%{opacity:.9;filter:brightness(1.25);text-shadow:0 0 5px rgba(255,43,214,.8),0 0 16px rgba(255,43,214,.46),0 0 32px rgba(255,43,214,.2)}
 }
 @keyframes neon-border-lamp{
-  0%,18%,22%,25%,53%,57%,100%{opacity:1;filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 7px var(--lamp-color)) drop-shadow(0 0 18px color-mix(in srgb,var(--lamp-color) 68%,transparent)) drop-shadow(0 0 32px color-mix(in srgb,var(--lamp-color) 38%,transparent))}
-  20%,24%,55%{opacity:.08;filter:none}
+  0%,91%,91.5%,92.15%,92.8%,100%{opacity:1;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px var(--lamp-color)) drop-shadow(0 0 15px color-mix(in srgb,var(--lamp-color) 58%,transparent))}
+  91.22%,92.02%{opacity:.42;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--lamp-color) 28%,transparent))}
+  91.38%{opacity:.16;filter:none}
+  92.48%{opacity:.88;filter:drop-shadow(0 0 3px var(--lamp-color)) drop-shadow(0 0 11px color-mix(in srgb,var(--lamp-color) 52%,transparent))}
 }
 
 /* Keep the portrait's neon shell and corner markers inside one cyberpunk cut. */
