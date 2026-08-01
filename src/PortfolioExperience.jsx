@@ -185,7 +185,7 @@ function Hud({ active, menu, setMenu, navigate, cityProgress }) {
       <div className="flight-deck__route" role="progressbar" aria-label="City journey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(cityProgress * 100)} style={{ '--route-progress': cityProgress }}><span className="flight-deck__runner" style={{ left: `calc(${cityProgress * 100}% + ${9 * (1 - 2 * cityProgress)}px)` }} />{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
       <div className="flight-deck__percent">{String(Math.round(cityProgress * 100)).padStart(2, '0')}%<small>NODE {String(active + 1).padStart(2, '0')} / {String(stations.length).padStart(2, '0')}</small></div>
       <button className="flight-deck__step" onClick={() => navigate(active + 1)} disabled={active === stations.length - 1} aria-label="Next station"><ArrowRight /></button>
-      <div className="flight-deck__keys">SCROLL: SNAP DRIVE · SHIFT+SCROLL: PANEL</div>
+      <div className="flight-deck__keys">SCROLL: PANEL → EDGE → SNAP DRIVE</div>
     </div>
   </>;
 }
@@ -337,14 +337,17 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     const onWheel = (event) => {
       if (terminal && event.target.closest('.terminal')) return;
       const nested = event.target.closest('.node-grid,.terminal__lines');
-      if (nested) {
-        const canContinue = event.deltaY > 0 ? nested.scrollTop + nested.clientHeight < nested.scrollHeight - 2 : nested.scrollTop > 2;
-        if (canContinue) return;
-      }
       const panel = event.target.closest('.chapter__panel');
-      if (event.shiftKey && panel) {
-        event.preventDefault();
-        panel.scrollTop += event.deltaY;
+      const scrollSurfaces = [nested, panel].filter((surface, index, list) => surface && list.indexOf(surface) === index);
+      const canScrollSurface = scrollSurfaces.some((surface) => {
+        if (surface.scrollHeight <= surface.clientHeight + 2) return false;
+        return event.deltaY > 0
+          ? surface.scrollTop + surface.clientHeight < surface.scrollHeight - 2
+          : surface.scrollTop > 2;
+      });
+      if (canScrollSurface) {
+        wheelIntent.current = 0;
+        clearTimeout(wheelResetTimer.current);
         return;
       }
       event.preventDefault();
