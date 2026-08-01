@@ -4,7 +4,7 @@ import { Stars } from '@react-three/drei';
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
-  Instagram, Linkedin, Menu, Phone, Send, Terminal as TerminalIcon, X,
+  Instagram, Linkedin, Menu, Phone, Send, Terminal as TerminalIcon, Volume2, VolumeX, X,
 } from 'lucide-react';
 import * as THREE from 'three';
 
@@ -162,6 +162,73 @@ function World({ active, reduced, travel }) {
   </Canvas></div>;
 }
 
+function CyberAudioToggle() {
+  const engine = useRef(null);
+  const [enabled, setEnabled] = useState(false);
+  const stopAudio = () => {
+    if (!engine.current) return;
+    clearInterval(engine.current.timer);
+    engine.current.context.close();
+    engine.current = null;
+    setEnabled(false);
+  };
+  const startAudio = async () => {
+    const AudioEngine = window.AudioContext || window.webkitAudioContext;
+    if (!AudioEngine || engine.current) return;
+    const context = new AudioEngine();
+    await context.resume();
+    const master = context.createGain();
+    const compressor = context.createDynamicsCompressor();
+    const delay = context.createDelay(.6);
+    const feedback = context.createGain();
+    master.gain.value = .16;
+    delay.delayTime.value = .24;
+    feedback.gain.value = .26;
+    delay.connect(feedback); feedback.connect(delay); delay.connect(master);
+    master.connect(compressor); compressor.connect(context.destination);
+
+    const tone = (frequency, duration, level, type = 'triangle', detune = 0) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const filter = context.createBiquadFilter();
+      const now = context.currentTime;
+      oscillator.type = type; oscillator.frequency.value = frequency; oscillator.detune.value = detune;
+      filter.type = 'lowpass'; filter.frequency.value = type === 'sawtooth' ? 520 : 1450; filter.Q.value = 3.5;
+      gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(level, now + .018); gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+      oscillator.connect(filter); filter.connect(gain); gain.connect(master); gain.connect(delay);
+      oscillator.start(now); oscillator.stop(now + duration + .03);
+    };
+    const padFilter = context.createBiquadFilter();
+    const padGain = context.createGain();
+    padFilter.type = 'lowpass'; padFilter.frequency.value = 240; padFilter.Q.value = 4;
+    padGain.gain.value = .014; padFilter.connect(padGain); padGain.connect(master);
+    [55, 82.41].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      oscillator.type = 'sawtooth'; oscillator.frequency.value = frequency; oscillator.detune.value = index ? 6 : -6;
+      oscillator.connect(padFilter); oscillator.start();
+    });
+    const sequence = [110, 130.81, 164.81, 196, 164.81, 130.81, 220, 196];
+    let step = 0;
+    const pulse = () => {
+      tone(sequence[step % sequence.length], .22, .052, step % 4 === 3 ? 'square' : 'triangle', step % 2 ? 5 : -5);
+      if (step % 4 === 0) tone(sequence[step % sequence.length] / 2, .48, .068, 'sawtooth');
+      if (step % 2 === 1) tone(1760 + (step % 3) * 220, .035, .018, 'square');
+      step += 1;
+    };
+    pulse();
+    engine.current = { context, timer: setInterval(pulse, 285) };
+    setEnabled(true);
+  };
+  useEffect(() => () => {
+    if (!engine.current) return;
+    clearInterval(engine.current.timer);
+    engine.current.context.close();
+    engine.current = null;
+  }, []);
+  const toggle = () => { if (enabled) stopAudio(); else startAudio().catch(() => setEnabled(false)); };
+  return <button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn cyber music off' : 'Turn cyber music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{enabled ? 'AUDIO ON' : 'AUDIO OFF'}</span></button>;
+}
+
 function Hud({ active, menu, setMenu, navigate, cityProgress }) {
   const station = stations[active];
   const travelTo = (event, index) => {
@@ -173,7 +240,8 @@ function Hud({ active, menu, setMenu, navigate, cityProgress }) {
     <header className="hud-top">
       <a href="#entry" className="mark">MER<span>23</span>LIN<small>AUTONOMOUS PORTFOLIO</small></a>
       <div className="telemetry"><i /> FACILITY ONLINE <span>{station.signal} // KM-{String(Math.round(cityProgress * 4200)).padStart(4, '0')}</span></div>
-      <button onClick={() => setMenu(!menu)} aria-label={menu ? 'Close navigation' : 'Open navigation'}>{menu ? <X /> : <Menu />}</button>
+      <CyberAudioToggle />
+      <button className="hud-menu-toggle" onClick={() => setMenu(!menu)} aria-label={menu ? 'Close navigation' : 'Open navigation'}>{menu ? <X /> : <Menu />}</button>
     </header>
     <nav className={`rail ${menu ? 'is-open' : ''}`} aria-label="Portfolio sections">
       {stations.map((item, i) => <a key={item.id} href={`#${item.id}`} className={active === i ? 'active' : ''} onClick={(event) => travelTo(event, i)}><b>{item.label}</b><span>{item.code}</span></a>)}
