@@ -121,6 +121,16 @@ html,#root{width:100%;min-height:100%;overflow-x:hidden}html{scroll-behavior:aut
   backdrop-filter:blur(18px) saturate(1.12);
   box-shadow:inset 0 0 12px color-mix(in srgb,var(--screen),transparent 78%),inset 0 0 0 1px rgba(255,255,255,.08),0 24px 72px rgba(0,0,0,.52),0 0 18px color-mix(in srgb,var(--screen),transparent 48%),0 0 38px color-mix(in srgb,var(--screen),transparent 72%);
 }
+.console-stage .hero-chapter .screen-dock .chapter__panel{
+  padding:clamp(26px,3.2vw,46px);
+  border:1px solid color-mix(in srgb,var(--screen),white 12%);
+  clip-path:polygon(0 0,calc(100% - 34px) 0,100% 34px,100% calc(100% - 20px),calc(100% - 20px) 100%,34px 100%,0 calc(100% - 34px));
+  background:linear-gradient(145deg,rgba(3,8,19,.9),rgba(2,5,14,.86));
+  -webkit-backdrop-filter:blur(22px) saturate(1.15);
+  backdrop-filter:blur(22px) saturate(1.15);
+  box-shadow:inset 0 0 14px color-mix(in srgb,var(--screen),transparent 80%),inset 0 0 0 1px rgba(255,255,255,.06),0 24px 72px rgba(0,0,0,.55),0 0 22px color-mix(in srgb,var(--screen),transparent 52%);
+}
+.console-stage .hero-chapter .screen-dock .chapter__panel:after{display:block;background:linear-gradient(90deg,var(--screen),transparent 38%) top left/70% 1px no-repeat,linear-gradient(90deg,transparent,var(--pink)) bottom right/54% 1px no-repeat}
 
 @media (min-width:761px) and (max-height:780px){
   .hero-chapter h1{margin:18px 0 16px;font-size:clamp(56px,6.5vw,84px)}
