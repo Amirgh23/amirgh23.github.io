@@ -182,8 +182,8 @@ function Hud({ active, menu, setMenu, navigate, cityProgress }) {
     <div className="flight-deck" aria-live="polite">
       <div className="flight-deck__station"><small>CURRENT STATION</small><b>{station.code} // {station.label}</b></div>
       <button className="flight-deck__step" onClick={() => navigate(active - 1)} disabled={active === 0} aria-label="Previous station"><ArrowLeft /></button>
-      <div className="flight-deck__route" role="progressbar" aria-label="City journey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(cityProgress * 100)} style={{ '--city-progress': `${cityProgress * 100}%` }}><span className="flight-deck__runner" style={{ left: `${cityProgress * 100}%` }} />{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
-      <div className="flight-deck__percent">{String(Math.round(cityProgress * 100)).padStart(2, '0')}<small>NODE {String(active + 1).padStart(2, '0')} / {String(stations.length).padStart(2, '0')}</small></div>
+      <div className="flight-deck__route" role="progressbar" aria-label="City journey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(cityProgress * 100)} style={{ '--route-progress': cityProgress }}><span className="flight-deck__runner" style={{ left: `calc(${cityProgress * 100}% + ${9 * (1 - 2 * cityProgress)}px)` }} />{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
+      <div className="flight-deck__percent">{String(Math.round(cityProgress * 100)).padStart(2, '0')}%<small>NODE {String(active + 1).padStart(2, '0')} / {String(stations.length).padStart(2, '0')}</small></div>
       <button className="flight-deck__step" onClick={() => navigate(active + 1)} disabled={active === stations.length - 1} aria-label="Next station"><ArrowRight /></button>
       <div className="flight-deck__keys">SCROLL: DRIVE · SHIFT+SCROLL: PANEL</div>
     </div>

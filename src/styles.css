@@ -83,12 +83,14 @@ html,#root{width:100%;min-height:100%;overflow-x:hidden}html{scroll-behavior:aut
 .flight-deck{width:min(660px,58vw);grid-template-columns:auto auto 1fr auto auto;gap:12px}
 .flight-deck__step{width:28px;height:28px;padding:0;display:grid;place-items:center;border:1px solid rgba(0,234,255,.2);background:rgba(0,234,255,.035);color:var(--cyan);cursor:pointer;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
 .flight-deck__step svg{width:13px}.flight-deck__step:disabled{opacity:.2;cursor:default}
-.flight-deck__route{height:auto;display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(90deg,#243449,#405168) center/100% 1px no-repeat}
-.flight-deck__route:before{content:"";position:absolute;left:0;top:50%;width:var(--city-progress);height:1px;background:linear-gradient(90deg,var(--pink),var(--cyan));box-shadow:0 0 8px var(--cyan);transform:translateY(-50%);transition:width .08s linear}
-.flight-deck__route .flight-deck__runner{z-index:3;width:10px;height:10px;border:1px solid #fff;background:var(--cyan);box-shadow:0 0 5px #fff,0 0 15px var(--cyan);transition:left .08s linear}
-.flight-deck__route button{position:relative;z-index:1;width:7px;height:7px;padding:0;border:1px solid #405168;background:#111a27;transform:rotate(45deg);cursor:pointer;transition:.25s}
-.flight-deck__route button.passed{border-color:var(--pink);background:rgba(255,36,200,.35)}
-.flight-deck__route button.active{width:11px;height:11px;border-color:var(--cyan);background:var(--cyan);box-shadow:0 0 13px var(--cyan)}
+.flight-deck__route{height:28px;display:flex;align-items:center;justify-content:space-between;gap:0;background:none}
+.flight-deck__route:after,.flight-deck__route:before{content:"";position:absolute;z-index:0;left:9px;right:9px;top:50%;height:1px;transform:translateY(-50%);transform-origin:left center;pointer-events:none}
+.flight-deck__route:after{background:#405168}.flight-deck__route:before{z-index:1;background:linear-gradient(90deg,var(--pink),var(--cyan));box-shadow:0 0 8px var(--cyan);transform:translateY(-50%) scaleX(var(--route-progress));transition:transform .08s linear}
+.flight-deck__route .flight-deck__runner{position:absolute;z-index:4;top:50%;width:11px;height:11px;border:1px solid #fff;background:var(--cyan);box-shadow:0 0 5px #fff,0 0 15px var(--cyan);transform:translate(-50%,-50%) rotate(45deg);transition:left .08s linear;pointer-events:none}
+.flight-deck__route button{position:relative;z-index:2;width:18px;height:18px;padding:0;border:0;background:transparent;transform:none;cursor:pointer}
+.flight-deck__route button:before{content:"";position:absolute;left:50%;top:50%;width:7px;height:7px;border:1px solid #405168;background:#111a27;transform:translate(-50%,-50%) rotate(45deg);transition:.25s}
+.flight-deck__route button.passed:before{border-color:var(--pink);background:rgba(255,36,200,.42)}
+.flight-deck__route button.active:before{width:12px;height:12px;border-color:var(--cyan);background:rgba(0,234,255,.24);box-shadow:0 0 14px var(--cyan)}
 .flight-deck__percent{min-width:55px;text-align:center}
 .world:after{transition:background 1s ease}
 .world.night-city{background:radial-gradient(circle at 50% 62%,#32103b 0,#0b0820 28%,#02030a 72%)}
