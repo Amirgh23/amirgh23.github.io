@@ -20,6 +20,7 @@ import {
   VolumeX,
 } from 'lucide-react';
 import * as THREE from 'three';
+import PortfolioExperience from './PortfolioExperience';
 
 const palette = ['#00f7ff', '#ff2bd6', '#8b5cf6', '#ff304f', '#39ff14'];
 const manifestoText = 'IT IS ENGINEERED.';
@@ -303,7 +304,7 @@ function Terminal({ open, onClose }) {
   </motion.div>}</AnimatePresence>;
 }
 
-export default function App() {
+function LegacyApp() {
   const [booted, setBooted] = useState(false);
   const [terminal, setTerminal] = useState(false);
   const [audio, setAudio] = useState(false);
@@ -470,4 +471,8 @@ export default function App() {
     </footer>
     <Terminal open={terminal} onClose={() => setTerminal(false)} />
   </>;
+}
+
+export default function App() {
+  return <PortfolioExperience projects={projects} featuredProjects={featuredProjects} skillGroups={skillGroups} experience={experience} manifestoText={manifestoText} />;
 }
