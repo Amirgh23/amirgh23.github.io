@@ -98,8 +98,8 @@ html,#root{width:100%;min-height:100%;overflow-x:hidden}html{scroll-behavior:aut
 .flight-deck__route button.active:before{width:12px;height:12px;border-color:var(--cyan);background:rgba(0,234,255,.24);box-shadow:0 0 14px var(--cyan)}
 .flight-deck__percent{min-width:55px;text-align:center}
 .world:after{transition:background 1s ease}
-.world.night-city{background:radial-gradient(circle at 50% 62%,#32103b 0,#0b0820 28%,#02030a 72%)}
-.world.night-city:after{background:linear-gradient(90deg,rgba(2,3,10,.72),rgba(2,3,10,.12) 34%,rgba(2,3,10,.05) 66%,rgba(2,3,10,.64)),linear-gradient(0deg,rgba(2,3,10,.76),transparent 32%,rgba(5,3,17,.18) 72%,rgba(2,3,10,.48));box-shadow:inset 0 -18vh 25vh rgba(255,22,143,.055)}
+.world.night-city{background:radial-gradient(circle at 50% 38%,#32105a 0,#100629 21%,#03040d 58%,#010207 100%)}
+.world.night-city:after{background:linear-gradient(90deg,rgba(1,2,8,.68),transparent 24%,transparent 76%,rgba(1,2,8,.68)),radial-gradient(ellipse at 50% 76%,rgba(0,234,255,.08),transparent 38%),repeating-linear-gradient(115deg,transparent 0 16vw,rgba(155,108,255,.018) 16.1vw,transparent 16.25vw);box-shadow:inset 0 -20vh 28vh rgba(255,22,143,.07),inset 0 16vh 25vh rgba(0,0,0,.28)}
 
 /* Cyber typography: angular display forms with readable interface sizing. */
 .mark,.boot__logo,.chapter__panel>h2,.hero-chapter h1,.operator__copy h3,.case-title h3,.skill-matrix h3,.work-log h3,.manifesto{font-family:var(--font-cyber);font-weight:600}

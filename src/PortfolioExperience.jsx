@@ -179,16 +179,65 @@ function CityRain({ reduced }) {
   return <points ref={ref}><bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]} /></bufferGeometry><pointsMaterial color="#9eefff" size={.025} transparent opacity={.34} depthWrite={false} /></points>;
 }
 
+function DataSpire({ item, index }) {
+  const { x, z, height, width, color, lean } = item;
+  return <group position={[x, -3.5 + height / 2, z]} rotation={[0, 0, lean]}>
+    <mesh><boxGeometry args={[width, height, width * .72]} /><meshStandardMaterial color="#040611" metalness={.88} roughness={.3} emissive={color} emissiveIntensity={.08} /></mesh>
+    <mesh position={[-Math.sign(x) * (width / 2 + .012), 0, 0]} rotation={[0, Math.PI / 2, 0]}><planeGeometry args={[width * .54, height * .82]} /><meshBasicMaterial color={color} transparent opacity={.08 + index % 3 * .025} /></mesh>
+    {Array.from({ length: Math.min(9, Math.max(4, Math.floor(height / 1.45))) }, (_, row) => <mesh key={row} position={[-Math.sign(x) * (width / 2 + .02), -height * .34 + row * 1.05, 0]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[width * .48, .035, .025]} /><meshBasicMaterial color={row % 3 ? '#3d5a86' : color} transparent opacity={row % 3 ? .34 : .92} /></mesh>)}
+    <mesh position={[0, height / 2 + .4, 0]}><octahedronGeometry args={[.16 + index % 2 * .06, 0]} /><meshBasicMaterial color={color} /></mesh>
+  </group>;
+}
+
+function NeonGateway({ z, index }) {
+  const color = index % 2 ? '#ff24c8' : '#00eaff';
+  return <group position={[0, 0, z]}>
+    <mesh position={[-5.35, 1.35, 0]}><boxGeometry args={[.055, 8.7, .055]} /><meshBasicMaterial color={color} transparent opacity={.58} /></mesh>
+    <mesh position={[5.35, 1.35, 0]}><boxGeometry args={[.055, 8.7, .055]} /><meshBasicMaterial color={color} transparent opacity={.58} /></mesh>
+    <mesh position={[0, 5.7, 0]}><boxGeometry args={[10.7, .055, .055]} /><meshBasicMaterial color={color} transparent opacity={.58} /></mesh>
+    <mesh position={[-4.9, 5.25, 0]} rotation={[0, 0, -.78]}><boxGeometry args={[1.25, .055, .055]} /><meshBasicMaterial color="#a879ff" /></mesh>
+    <mesh position={[4.9, 5.25, 0]} rotation={[0, 0, .78]}><boxGeometry args={[1.25, .055, .055]} /><meshBasicMaterial color="#a879ff" /></mesh>
+  </group>;
+}
+
+function DataRunner({ offset, lane, color, reduced }) {
+  const ref = useRef();
+  useFrame((state) => {
+    if (!ref.current || reduced) return;
+    ref.current.position.z = 7 - ((state.clock.elapsedTime * 13 + offset) % 70);
+  });
+  return <mesh ref={ref} position={[lane, -3.42, 7 - offset]}><boxGeometry args={[.028, .022, 2.6]} /><meshBasicMaterial color={color} transparent opacity={.84} /></mesh>;
+}
+
+function HolographicCore({ reduced }) {
+  const ref = useRef(), inner = useRef();
+  useFrame((state) => {
+    if (!ref.current || !inner.current) return;
+    ref.current.position.z = state.camera.position.z - 24;
+    if (!reduced) {
+      ref.current.rotation.y = state.clock.elapsedTime * .16;
+      inner.current.rotation.set(state.clock.elapsedTime * .11, state.clock.elapsedTime * -.19, state.clock.elapsedTime * .08);
+    }
+  });
+  return <group ref={ref} position={[0, 3.1, -24]}>
+    <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[2.3, .035, 8, 72]} /><meshBasicMaterial color="#00eaff" transparent opacity={.62} /></mesh>
+    <mesh rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[1.78, .025, 8, 64]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.72} /></mesh>
+    <mesh ref={inner}><icosahedronGeometry args={[.92, 1]} /><meshBasicMaterial color="#b78cff" wireframe transparent opacity={.72} /></mesh>
+    <mesh><sphereGeometry args={[.28, 16, 12]} /><meshBasicMaterial color="#ffffff" /></mesh>
+    <pointLight color="#00eaff" intensity={24} distance={24} />
+  </group>;
+}
+
 function NightCity({ active, reduced, travel }) {
   const rig = useRef();
-  const buildings = useMemo(() => {
-    let seed = 23;
+  const spires = useMemo(() => {
+    let seed = 2319;
     const random = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-    const colors = ['#00eaff', '#ff24c8', '#895cff', '#ff7a2f'];
+    const colors = ['#00eaff', '#ff24c8', '#895cff'];
     const result = [];
-    for (let row = 0; row < 15; row += 1) for (const side of [-1, 1]) for (let lane = 0; lane < 2; lane += 1) {
-      const width = 2.7 + random() * 2.8, depth = 2.8 + random() * 3.4, height = 4.8 + random() * 10.5 + row * .12;
-      result.push({ x: side * (7 + lane * 4.4 + random() * 1.2), z: 2 - row * 4.7 - lane * 1.7, width, depth, height, side, color: colors[(row + lane + (side > 0 ? 1 : 0)) % colors.length] });
+    for (let row = 0; row < 19; row += 1) for (const side of [-1, 1]) {
+      const width = 1.8 + random() * 2.15, height = 6.5 + random() * 11.5;
+      result.push({ x: side * (6.7 + random() * 4.7), z: 5 - row * 3.85, width, height, lean: side * (.018 + random() * .035), color: colors[(row + (side > 0 ? 1 : 0)) % colors.length] });
     }
     return result;
   }, []);
@@ -204,30 +253,21 @@ function NightCity({ active, reduced, travel }) {
     if (rig.current) rig.current.position.x = THREE.MathUtils.lerp(rig.current.position.x, (active - 3) * -.16, .025);
   });
   return <group ref={rig}>
-    <fog attach="fog" args={['#080414', 10, 64]} />
-    <ambientLight color="#263765" intensity={.42} />
-    <hemisphereLight color="#3650a0" groundColor="#ff168f" intensity={.7} />
-    <pointLight position={[0, 6, -7]} color="#ff24c8" intensity={34} distance={38} />
-    <pointLight position={[-9, 2, -2]} color="#00eaff" intensity={28} distance={26} />
-    <pointLight position={[10, 1, -18]} color="#ff7a2f" intensity={20} distance={24} />
-    <Stars radius={80} depth={28} count={360} factor={1.2} fade speed={.08} />
-    <mesh position={[0, -3.5, -26]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[11, 78]} /><meshStandardMaterial color="#02030a" metalness={.86} roughness={.24} /></mesh>
-    <mesh position={[-5.2, -3.46, -26]}><boxGeometry args={[.08, .025, 78]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.75} /></mesh>
-    <mesh position={[5.2, -3.46, -26]}><boxGeometry args={[.08, .025, 78]} /><meshBasicMaterial color="#00eaff" transparent opacity={.75} /></mesh>
-    {[-1.8, 1.8].map((x) => <mesh key={x} position={[x, -3.455, -26]}><boxGeometry args={[.035, .02, 78]} /><meshBasicMaterial color="#755cff" transparent opacity={.35} /></mesh>)}
-    {buildings.map((building, index) => <CyberBuilding key={`${building.x}-${building.z}`} building={building} index={index} />)}
-    {Array.from({ length: 12 }, (_, index) => <RoadTraffic key={index} offset={index * 5.7} lane={index % 2 ? -1.2 : 1.2} color={index % 3 ? '#00eaff' : '#ff24c8'} speed={.72 + index % 4 * .13} reduced={reduced} />)}
-    <FlyingVehicle position={[-2.8, 1.5, -2]} color="#ff24c8" speed={3.5} reduced={reduced} />
-    <FlyingVehicle position={[3.4, 3.2, -18]} color="#00eaff" speed={2.8} reverse reduced={reduced} />
-    <FlyingVehicle position={[-.8, 5.1, -34]} color="#ff7a2f" speed={2.1} reduced={reduced} />
-    <NeonDogfight reduced={reduced} />
-    <DroneSwarm reduced={reduced} />
-    <NeonBillboard position={[-5.7, 2.4, -9]} color="#ff24c8" />
-    <NeonBillboard position={[5.8, 3.7, -21]} color="#00eaff" flip />
-    <NeonBillboard position={[-5.5, 4.5, -36]} color="#895cff" />
-    <NeonBillboard position={[5.9, 2.8, -49]} color="#ff7a2f" flip />
+    <fog attach="fog" args={['#04020c', 9, 58]} />
+    <ambientLight color="#24376c" intensity={.38} />
+    <hemisphereLight color="#2d4e9d" groundColor="#ca0a7e" intensity={.6} />
+    <pointLight position={[-7, 5, -5]} color="#00eaff" intensity={26} distance={30} />
+    <pointLight position={[8, 1, -18]} color="#ff24c8" intensity={30} distance={32} />
+    <Stars radius={75} depth={26} count={520} factor={1.1} fade speed={.06} />
+    <mesh position={[0, -3.52, -28]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[12.5, 82]} /><meshStandardMaterial color="#010209" metalness={.96} roughness={.16} /></mesh>
+    {[-5.55, -2.75, 0, 2.75, 5.55].map((x, index) => <mesh key={x} position={[x, -3.47, -28]}><boxGeometry args={[index === 2 ? .055 : .025, .02, 82]} /><meshBasicMaterial color={index % 2 ? '#ff24c8' : '#00eaff'} transparent opacity={index === 2 ? .55 : .3} /></mesh>)}
+    {Array.from({ length: 18 }, (_, index) => <mesh key={index} position={[0, -3.465, 6 - index * 4.5]}><boxGeometry args={[11.1, .02, .025]} /><meshBasicMaterial color={index % 3 ? '#263969' : '#a879ff'} transparent opacity={index % 3 ? .22 : .48} /></mesh>)}
+    {spires.map((item, index) => <DataSpire key={`${item.x}-${item.z}`} item={item} index={index} />)}
+    {Array.from({ length: 9 }, (_, index) => <NeonGateway key={index} z={3 - index * 8.5} index={index} />)}
+    {Array.from({ length: 16 }, (_, index) => <DataRunner key={index} offset={index * 4.35} lane={[-4.4, -3.2, -1.35, 1.35, 3.2, 4.4][index % 6]} color={index % 2 ? '#ff24c8' : '#00eaff'} reduced={reduced} />)}
+    <HolographicCore reduced={reduced} />
     <CityRain reduced={reduced} />
-    <mesh position={[0, 8, -48]}><sphereGeometry args={[10, 32, 16]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.045} /></mesh>
+    <mesh position={[0, 7.5, -55]}><circleGeometry args={[8.5, 48]} /><meshBasicMaterial color="#ff24c8" transparent opacity={.065} /></mesh>
   </group>;
 }
 
