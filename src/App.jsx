@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Line, OrbitControls, Stars } from '@react-three/drei';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
+  ArrowUpRight,
   Briefcase,
   Code2,
   Database,
@@ -12,7 +13,6 @@ import {
   Instagram,
   Linkedin,
   Phone,
-  Power,
   Radio,
   Send,
   Terminal as TerminalIcon,
@@ -53,13 +53,60 @@ const projects = [
   color: palette[index % palette.length],
 }));
 
-const capabilityModules = [
-  ['FRONTEND ENGINEERING', 'React, TypeScript, Next.js, state architecture and high-density interfaces', 'CORE'],
-  ['FULL-STACK SYSTEMS', 'Product logic, API integration, MongoDB and PostgreSQL data layers', 'CORE'],
-  ['AI AGENT NETWORKS', 'Tool use, orchestration, memory and dependable task execution', 'CORE'],
-  ['WORDPRESS DELIVERY', 'International business websites, SEO and production maintenance', 'ADVANCED'],
-  ['VISION & LEARNING', 'PyTorch, TensorFlow, OpenCV, YOLO and image-processing pipelines', 'ADVANCED'],
-  ['INTERACTIVE 3D', 'Three.js experiences, Blender assets and visual interface systems', 'WORKING'],
+const featuredProjects = [
+  {
+    id: 'CASE-01',
+    title: 'MER23LIN INTERFACE',
+    category: 'PRODUCT EXPERIENCE',
+    problem: 'A conventional profile page could not show the relationship between engineering depth, professional experience and the full public project network.',
+    role: 'PRODUCT DESIGN · FRONTEND ENGINEERING · CREATIVE TECHNOLOGY',
+    solution: 'Built a responsive React and Three.js command interface with a live project archive, interactive neural core, terminal and accessible reduced-motion behavior.',
+    result: '18 public repositories are now searchable from one cohesive professional interface.',
+    proof: '18 REPOSITORIES INDEXED',
+    stack: ['REACT', 'THREE.JS', 'FRAMER MOTION', 'GITHUB PAGES'],
+    url: 'https://amirgh23.github.io/',
+    source: 'https://github.com/Amirgh23/amirgh23.github.io',
+    accent: '#00f7ff',
+  },
+  {
+    id: 'CASE-02',
+    title: 'RHUDS PRO',
+    category: 'FRONTEND SYSTEM',
+    problem: 'High-density HUD products need consistent, reusable interface primitives instead of rebuilding the same visual and interaction patterns for every screen.',
+    role: 'FRONTEND ARCHITECTURE · DESIGN SYSTEM ENGINEERING',
+    solution: 'Engineered a typed React HUD system that packages reusable production interface patterns into a coherent component library.',
+    result: '50+ production-ready React HUD components available in one reusable system.',
+    proof: '50+ COMPONENTS',
+    stack: ['REACT', 'TYPESCRIPT', 'COMPONENT ARCHITECTURE'],
+    url: 'https://github.com/Amirgh23/rhuds-pro',
+    accent: '#ff2bd6',
+  },
+  {
+    id: 'CASE-03',
+    title: 'AUTONOMOUS MARKET AGENT',
+    category: 'PYTHON SYSTEM',
+    problem: 'Automated XAUUSD execution requires multiple strategies to cooperate while keeping risk controls explicit and centralized.',
+    role: 'PYTHON · SYSTEMS ENGINEERING · AUTOMATION',
+    solution: 'Combined a multi-strategy ensemble with an advanced risk-management pipeline in a production-grade trading-bot architecture.',
+    result: 'A single auditable pipeline coordinates strategy signals and risk management for XAUUSD.',
+    proof: 'MULTI-STRATEGY PIPELINE',
+    stack: ['PYTHON', 'AUTOMATION', 'RISK MANAGEMENT'],
+    url: 'https://github.com/Amirgh23/gold-trading-bot',
+    accent: '#8b5cf6',
+  },
+  {
+    id: 'CASE-04',
+    title: 'OPTIMIZATION SENTINEL',
+    category: 'AI RESEARCH ENGINEERING',
+    problem: 'Feature-selection experiments can become unreliable when perturbation stability, reproducibility and ablation evidence are missing.',
+    role: 'AI RESEARCH · EXPERIMENT DESIGN · PYTHON',
+    solution: 'Implemented perturbation-consensus feature selection with reproducible experiment controls and a dedicated ablation study.',
+    result: 'A reproducible research pipeline makes feature-selection behavior inspectable across perturbations.',
+    proof: 'REPRODUCIBLE + ABLATION-READY',
+    stack: ['PYTHON', 'FEATURE SELECTION', 'EXPERIMENTATION'],
+    url: 'https://github.com/Amirgh23/pc-ehoa-feature-selection',
+    accent: '#39ff14',
+  },
 ];
 
 const skillGroups = [
@@ -279,7 +326,7 @@ export default function App() {
 
     <header>
       <a href="#top" className="brand">AMIRGH23<span>//MER23LIN</span></a>
-      <nav><a href="#skills">STACK</a><a href="#experience">EXPERIENCE</a><a href="#projects">NODES</a><a href="#contact">UPLINK</a></nav>
+      <nav><a href="#featured">WORK</a><a href="#experience">EXPERIENCE</a><a href="#skills">STACK</a><a href="#projects">ARCHIVE</a><a href="#contact">UPLINK</a></nav>
       <div className="controls">
         <button onClick={() => setAudio(!audio)} aria-label={audio ? 'Disable interface audio' : 'Enable interface audio'}>{audio ? <Volume2 /> : <VolumeX />}</button>
         <button onClick={() => setTerminal(true)} aria-label="Open terminal"><TerminalIcon /></button>
@@ -289,20 +336,53 @@ export default function App() {
     <main id="top">
       <section className="hero">
         <div className="hero-copy">
-          <div className="eyebrow"><span /> NETWORK STATUS: ONLINE</div>
+          <div className="eyebrow"><span /> AVAILABLE FOR SELECT COLLABORATIONS</div>
           <h1>ENGINEERING<br /><em>INTELLIGENCE</em><br />INTO PRODUCTS.</h1>
           <p>AI agents, full-stack systems and high-impact interfaces — engineered from research core to production surface.</p>
-          <div className="hero-actions"><a href="#experience">OPEN EXPERIENCE LOG <Power /></a><button onClick={() => setTerminal(true)}>OPEN TERMINAL <TerminalIcon /></button></div>
+          <div className="hero-actions"><a href="#featured">VIEW FEATURED WORK <ArrowUpRight /></a><a className="secondary-cta" href="#contact">START A PROJECT <Send /></a></div>
           <div className="metrics career-metrics">
             <div><b>10</b><span>YEARS PROGRAMMING</span></div>
             <div><b>7</b><span>YEARS FRONTEND &amp; ARTIFICIAL INTELLIGENCE</span></div>
             <div><b>15+</b><span>COMPANY COLLABS</span></div>
+            <div><b>10+</b><span>PROJECTS · LAST 2 YEARS</span></div>
           </div>
         </div>
         <div className="core-wrap">
           <div className="core-label top">MER23LIN AUTONOMOUS CORE // LIVE</div>
           <Suspense fallback={<div className="core-fallback">CORE INITIALIZING</div>}><NeuralScene /></Suspense>
           <div className="core-label bottom">DRAG TO INSPECT · NODE AMIRGH23</div>
+        </div>
+      </section>
+
+      <section id="featured" className="featured-projects" aria-labelledby="featured-title">
+        <div className="featured-intro">
+          <div className="section-head"><span>01 // SELECTED PROOF</span><h2 id="featured-title">FEATURED PROJECTS</h2></div>
+          <p>Not a technology inventory. Each case file connects a real problem to my role, the engineering decision and an inspectable outcome.</p>
+        </div>
+        <div className="case-files">
+          {featuredProjects.map((project, index) => <motion.article
+            className="case-file"
+            key={project.id}
+            style={{ '--case-accent': project.accent }}
+            initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+          >
+            <div className="case-identity"><span>{project.id}</span><b>{String(index + 1).padStart(2, '0')}</b><small>{project.category}</small></div>
+            <div className="case-story">
+              <h3>{project.title}</h3>
+              <div className="case-evidence">
+                <div><small>PROBLEM</small><p>{project.problem}</p></div>
+                <div><small>ROLE</small><p>{project.role}</p></div>
+                <div><small>SOLUTION</small><p>{project.solution}</p></div>
+              </div>
+              <div className="case-actions">
+                <a href={project.url} target="_blank" rel="noreferrer">INSPECT PROJECT <ArrowUpRight /></a>
+                {project.source && <a className="case-source" href={project.source} target="_blank" rel="noreferrer">VIEW SOURCE <Github /></a>}
+              </div>
+            </div>
+            <aside className="case-result"><small>VERIFIED OUTCOME</small><strong>{project.proof}</strong><p>{project.result}</p><div>{project.stack.map((item) => <span key={item}>{item}</span>)}</div></aside>
+          </motion.article>)}
         </div>
       </section>
 
@@ -317,7 +397,7 @@ export default function App() {
           <div className="biometric-tag">BIOMETRIC MATCH // 99.7%</div>
         </div>
         <motion.div className="identity-copy" initial={reduceMotion ? false : { opacity: 0, x: 35 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-          <span>00 // AUTHORIZED OPERATOR</span>
+          <span>02 // AUTHORIZED OPERATOR</span>
           <h2 id="identity-title">AMIRREZA<br /><em>GHAFFARIAN</em></h2>
           <p>AI agent engineer and full-stack developer connecting autonomous intelligence, data, frontend architecture and production web delivery.</p>
           <div className="identity-data">
@@ -333,15 +413,8 @@ export default function App() {
         </motion.div>
       </section>
 
-      <section id="systems" className="systems">
-        <div className="section-head"><span>01 // ENGINEERING SYSTEMS</span><h2>CAPABILITY GRID</h2></div>
-        <div className="system-grid">{capabilityModules.map(([name, description, signal], index) => <motion.article key={name} initial={reduceMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.06 }}>
-          <small>MOD-{String(index + 1).padStart(2, '0')} // {signal}</small><h3>{name}</h3><p>{description}</p><div className="module-signal"><i /><i /><i /><i className={signal === 'WORKING' ? '' : 'active'} /></div>
-        </motion.article>)}</div>
-      </section>
-
       <section id="skills" className="stack-matrix">
-        <div className="section-head"><span>02 // VERIFIED TOOLCHAIN</span><h2>FULL-STACK SKILL MATRIX</h2></div>
+        <div className="section-head"><span>03 // SUPPORTING TOOLCHAIN</span><h2>ENGINEERING STACK</h2></div>
         <div className="stack-summary">
           <div><Code2 /><b>FRONTEND</b><span>7 YEARS · WEB APPS</span></div>
           <div><Database /><b>FRONTEND + AI</b><span>7 YEARS · DATA + APIs</span></div>
@@ -356,7 +429,7 @@ export default function App() {
       </section>
 
       <section id="experience" className="experience-section">
-        <div className="section-head"><span>03 // PROFESSIONAL TRAJECTORY</span><h2>EXPERIENCE LOG</h2></div>
+        <div className="section-head"><span>04 // PROFESSIONAL TRAJECTORY</span><h2>EXPERIENCE LOG</h2></div>
         <div className="experience-layout">
           <div className="timeline">{experience.map((item, index) => <motion.article key={`${item.company}-${item.period}`} initial={reduceMotion ? false : { opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="timeline-index">{String(index + 1).padStart(2, '0')}</div>
@@ -372,9 +445,9 @@ export default function App() {
       </section>
 
       <section id="projects" className="projects">
-        <div className="section-head"><span>04 // COMPLETE REPOSITORY NETWORK</span><h2>ALL PUBLIC NODES</h2></div>
+        <div className="archive-heading"><div className="section-head"><span>05 // REPOSITORY ARCHIVE</span><h2>ALL PUBLIC NODES</h2></div><p>Featured work is curated above. Every remaining public repository stays searchable here as supporting engineering evidence.</p></div>
         <div className="repo-toolbar"><label><span>SEARCH NETWORK</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="TYPE NAME, LANGUAGE OR CAPABILITY..." /></label><div><b>{filteredProjects.length}</b><span> / {projects.length} NODES VISIBLE</span></div></div>
-        <div className="project-map">{filteredProjects.map((project, index) => <motion.a href={project.url} target="_blank" rel="noreferrer" key={project.id} style={{ '--node': project.color }} whileHover={reduceMotion ? {} : { y: -8 }}>
+        <div className="project-map">{filteredProjects.map((project, index) => <motion.a href={project.url} target="_blank" rel="noreferrer" key={project.id} style={{ '--node': project.color }} whileHover={reduceMotion ? {} : { y: -3 }}>
           <div className="node-orbit"><i /><b>{project.id}</b></div><small>{project.type}</small><h3>{project.title}</h3><p>{project.description}</p><div className="repo-meta"><span>{project.language}</span><span>★ {project.stars}</span></div><strong>ACCESS REPOSITORY ↗</strong><em>{String(index + 1).padStart(2, '0')}</em>
         </motion.a>)}</div>
         {filteredProjects.length === 0 && <div className="empty-network">NO MATCHING NODE // MODIFY SEARCH SIGNAL</div>}
