@@ -18,6 +18,56 @@
 .contact-channels{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:30px}.contact-channels>a{position:relative;min-height:76px;padding:15px 18px;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(7,11,24,.98),rgba(5,8,22,.9));border:1px solid rgba(0,247,255,.25);clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));transition:border-color .2s,color .2s,background .2s}.contact-channels>a:nth-child(2){border-color:rgba(139,92,246,.42)}.contact-channels>a:nth-child(3){border-color:rgba(255,43,214,.42)}.contact-channels>a:hover,.contact-channels>a:focus-visible{color:var(--cyan);border-color:var(--cyan);background:rgba(0,247,255,.055);outline:0}.contact-channels>a:nth-child(3):hover,.contact-channels>a:nth-child(3):focus-visible{color:var(--pink);border-color:var(--pink);background:rgba(255,43,214,.055)}.contact-channels svg{width:19px;height:19px;flex:0 0 auto;color:currentColor}.contact-channels span{margin:0}.contact-channels i,.contact-channels strong{display:block;font-family:'Share Tech Mono';font-style:normal}.contact-channels i{margin-bottom:6px;color:var(--muted);font-size:8px;letter-spacing:.18em}.contact-channels strong{color:var(--text);font-size:11px;font-weight:400;letter-spacing:.06em}.contact-channels>a:hover strong,.contact-channels>a:focus-visible strong{color:currentColor}
 @media(max-width:760px){.contact-channels{grid-template-columns:1fr}.contact-channels>a{min-height:68px}}@media(max-width:560px){footer{align-items:start}.contact-channels{margin-top:8px}}
 
+/* Neon tubes: the content stays steady; only the illuminated outline flickers. */
+.manifesto h2{
+  -webkit-text-stroke:1.35px var(--pink);
+  animation:neon-title-lamp 7.8s steps(1,end) infinite;
+  will-change:opacity,filter,text-shadow;
+}
+.contact-channels>a,.socials>a{
+  --lamp-color:var(--cyan);
+  --lamp-delay:0s;
+  isolation:isolate;
+  position:relative;
+}
+.contact-channels>a:nth-child(1){--lamp-delay:-1.15s}
+.contact-channels>a:nth-child(2){--lamp-color:var(--purple);--lamp-delay:-3.87s}
+.contact-channels>a:nth-child(3){--lamp-color:var(--pink);--lamp-delay:-5.26s}
+.socials>a:nth-child(1){--lamp-delay:-.4s}
+.socials>a:nth-child(2){--lamp-color:var(--pink);--lamp-delay:-4.2s}
+.contact-channels>a::after,.socials>a::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-1px;
+  pointer-events:none;
+  border:1px solid var(--lamp-color);
+  clip-path:inherit;
+  opacity:.94;
+  filter:drop-shadow(0 0 3px color-mix(in srgb,var(--lamp-color) 62%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--lamp-color) 28%,transparent));
+  animation:neon-border-lamp 8.6s steps(1,end) var(--lamp-delay) infinite;
+  will-change:opacity,filter;
+}
+.contact-channels>a>*,.socials>a>*{position:relative;z-index:1}
+.contact-channels>a:hover::after,.contact-channels>a:focus-visible::after,
+.socials>a:hover::before,.socials>a:focus-visible::before{
+  animation-play-state:paused;
+  opacity:1;
+  filter:drop-shadow(0 0 5px color-mix(in srgb,var(--lamp-color) 75%,transparent)) drop-shadow(0 0 14px color-mix(in srgb,var(--lamp-color) 36%,transparent));
+}
+@keyframes neon-title-lamp{
+  0%,6.35%,6.82%,7.08%,7.62%,48.9%,49.32%,50.05%,91.6%,92.15%,100%{opacity:1;filter:brightness(1.08);text-shadow:0 0 7px rgba(255,43,214,.78),0 0 20px rgba(255,43,214,.46),0 0 46px rgba(255,43,214,.24)}
+  6.43%,6.7%,49.02%,49.21%,91.72%{opacity:.48;filter:brightness(.62);text-shadow:0 0 3px rgba(255,43,214,.25)}
+  6.55%,49.12%,91.84%{opacity:.13;filter:brightness(.35);text-shadow:none}
+  6.94%,49.48%,92.02%{opacity:.88;filter:brightness(1.55);text-shadow:0 0 10px rgba(255,43,214,.95),0 0 28px rgba(255,43,214,.64),0 0 58px rgba(0,247,255,.2)}
+}
+@keyframes neon-border-lamp{
+  0%,11.4%,11.88%,12.25%,12.72%,58.3%,58.76%,59.31%,94.2%,94.73%,100%{opacity:.94;filter:drop-shadow(0 0 3px color-mix(in srgb,var(--lamp-color) 62%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--lamp-color) 28%,transparent))}
+  11.52%,11.75%,58.42%,58.65%,94.34%{opacity:.32;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--lamp-color) 20%,transparent))}
+  11.64%,58.54%,94.46%{opacity:.06;filter:none}
+  12.03%,58.93%,94.61%{opacity:1;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--lamp-color) 82%,transparent)) drop-shadow(0 0 15px color-mix(in srgb,var(--lamp-color) 42%,transparent))}
+}
+
 /* Keep the portrait's neon shell and corner markers inside one cyberpunk cut. */
 .portrait-frame{
   overflow:hidden;
