@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
+import { Line, Stars } from '@react-three/drei';
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
