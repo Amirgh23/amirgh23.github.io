@@ -42,3 +42,20 @@ main{position:relative;z-index:2}.chapter{min-height:118vh;padding:130px clamp(7
 .chapter:not(.hero-chapter) .screen-dock:before{opacity:.7;background:linear-gradient(135deg,color-mix(in srgb,var(--screen),transparent 4%),rgba(18,27,45,.72) 17%,rgba(2,4,12,.96) 70%,color-mix(in srgb,var(--screen),transparent 14%))}.chapter:not(.hero-chapter) .screen-dock .chapter__panel{background:linear-gradient(135deg,color-mix(in srgb,var(--screen),transparent 95%),rgba(3,7,18,.9) 25%,rgba(2,4,12,.84));box-shadow:inset 0 0 58px color-mix(in srgb,var(--screen),transparent 94%),0 28px 75px rgba(0,0,0,.38)}.chapter:not(.hero-chapter) .screen-dock:after{display:none}.chapter--left:not(.hero-chapter) .screen-dock{animation:floatWindowLeft 6.8s ease-in-out infinite}.chapter--right:not(.hero-chapter) .screen-dock{animation:floatWindowRight 7.4s ease-in-out infinite}.chapter:not(.hero-chapter) .screen-dock:hover{animation-play-state:paused}
 @keyframes floatWindowLeft{0%,100%{transform:perspective(1200px) rotateY(1.15deg) translate3d(1.2vw,-5px,0)}50%{transform:perspective(1200px) rotateY(.25deg) translate3d(calc(1.2vw + 5px),7px,0)}}@keyframes floatWindowRight{0%,100%{transform:perspective(1200px) rotateY(-1.15deg) translate3d(-1.2vw,6px,0)}50%{transform:perspective(1200px) rotateY(-.2deg) translate3d(calc(-1.2vw - 5px),-7px,0)}}
 @media(max-width:760px){.chapter:not(.hero-chapter) .screen-dock{animation:none}.chapter:not(.hero-chapter) .screen-dock:before{opacity:.58}}
+
+/* Desktop spatial journey: scrolling moves the camera toward fixed windows instead of moving cards upward. */
+@media(min-width:761px){
+  .chapter:not(.hero-chapter){min-height:145vh;padding:0;display:block;pointer-events:none;scroll-margin:0}
+  .chapter:not(.hero-chapter):before{display:none}
+  .chapter:not(.hero-chapter) .screen-dock{position:fixed;z-index:var(--spatial-z,5);top:50%;width:min(920px,75vw);margin:0;animation:none!important;opacity:var(--spatial-opacity,0);filter:blur(var(--spatial-blur,8px)) drop-shadow(0 26px 60px rgba(0,0,0,.4));transform:translate3d(0,calc(-50% + var(--spatial-y,60px)),0) scale(var(--spatial-scale,.24));transform-origin:center;transition:opacity .08s linear,filter .08s linear;will-change:transform,opacity,filter;pointer-events:none}
+  .chapter--left:not(.hero-chapter) .screen-dock{left:7vw;right:auto}
+  .chapter--right:not(.hero-chapter) .screen-dock{right:7vw;left:auto}
+  .chapter:not(.hero-chapter).is-spatial-active .screen-dock{pointer-events:auto}
+  .chapter:not(.hero-chapter) .chapter__panel{max-height:78vh;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--screen) rgba(2,4,12,.8)}
+  .contact-chapter .screen-dock{width:min(1050px,84vw)!important;left:50%!important;right:auto!important;transform:translate3d(-50%,calc(-50% + var(--spatial-y,60px)),0) scale(var(--spatial-scale,.24))!important}
+}
+@media(max-width:760px){
+  .chapter:not(.hero-chapter){min-height:auto;padding:110px 18px 80px;display:flex;pointer-events:auto}
+  .chapter:not(.hero-chapter) .screen-dock{position:relative;inset:auto;opacity:1!important;filter:none!important;transform:none!important;pointer-events:auto}
+  .chapter:not(.hero-chapter) .chapter__panel{max-height:none;overflow:visible}
+}

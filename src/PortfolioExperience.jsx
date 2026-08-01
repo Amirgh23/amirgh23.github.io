@@ -115,6 +115,14 @@ function World({ progress, reduced }) {
 
 function Hud({ active, menu, setMenu, travel }) {
   const station = stations[active];
+  const travelTo = (event, id) => {
+    event.preventDefault();
+    const node = document.getElementById(id);
+    if (!node) return;
+    const top = id === 'entry' ? 0 : node.offsetTop + node.offsetHeight / 2 - innerHeight / 2;
+    scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    setMenu(false);
+  };
   return <>
     <header className="hud-top">
       <a href="#entry" className="mark">MER<span>23</span>LIN<small>AUTONOMOUS PORTFOLIO</small></a>
@@ -122,7 +130,7 @@ function Hud({ active, menu, setMenu, travel }) {
       <button onClick={() => setMenu(!menu)} aria-label={menu ? 'Close navigation' : 'Open navigation'}>{menu ? <X /> : <Menu />}</button>
     </header>
     <nav className={`rail ${menu ? 'is-open' : ''}`} aria-label="Portfolio sections">
-      {stations.map((item, i) => <a key={item.id} href={`#${item.id}`} className={active === i ? 'active' : ''} onClick={() => setMenu(false)}><b>{item.label}</b><span>{item.code}</span></a>)}
+      {stations.map((item, i) => <a key={item.id} href={`#${item.id}`} className={active === i ? 'active' : ''} onClick={(event) => travelTo(event, item.id)}><b>{item.label}</b><span>{item.code}</span></a>)}
     </nav>
     <div className="hud-corners" aria-hidden="true"><i /><i /><i /><i /></div>
     <div className="flight-deck" aria-live="polite">
@@ -150,15 +158,15 @@ function CursorSignal() {
   return <div className="cursor-signal" ref={ref} aria-hidden="true"><i /><span /></div>;
 }
 
-function Section({ id, index, eyebrow, title, side = 'left', children, className = '' }) {
+function Section({ id, index, eyebrow, title, side = 'left', children, className = '', active = false }) {
   const screenColors = ['#00eaff', '#ff24c8', '#00eaff', '#9b6cff', '#00eaff', '#ff24c8', '#00eaff'];
-  return <section id={id} className={`chapter chapter--${side} ${className}`} data-index={index} style={{ '--screen': screenColors[index] }}>
+  return <section id={id} className={`chapter chapter--${side} ${className} ${active ? 'is-spatial-active' : ''}`} data-index={index} style={{ '--screen': screenColors[index] }}>
     <div className="screen-dock">
       <div className="screen-hardware" aria-hidden="true"><i /><i /><i /><b>DISPLAY M23-{String(index).padStart(2, '0')}</b><span>◈</span></div>
-      <motion.div className="chapter__panel" initial={{ opacity: 0, y: 35, scale: .985 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ amount: .2 }} transition={{ duration: .55 }}>
+      <div className="chapter__panel">
         <div className="chapter__meta"><span>CHAPTER // 0{index}</span><b>{eyebrow}</b></div>
         {title && <h2>{title}</h2>}{children}
-      </motion.div>
+      </div>
       <div className="screen-bus" aria-hidden="true"><i /><i /><i /><i /><span /></div>
     </div>
   </section>;
@@ -196,8 +204,34 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
   const progress = useRef(0); const reduced = useReducedMotion();
   const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
   useEffect(() => {
-    const update = () => { const max = document.documentElement.scrollHeight - innerHeight; progress.current = max > 0 ? scrollY / max : 0; setTravel(progress.current); const nodes = [...document.querySelectorAll('.chapter')]; let nearest = 0, distance = Infinity; nodes.forEach((node,i)=>{const d=Math.abs(node.getBoundingClientRect().top-innerHeight*.28);if(d<distance){distance=d;nearest=i;}}); setActive(nearest); };
-    update(); addEventListener('scroll', update, { passive: true }); return () => removeEventListener('scroll', update);
+    const update = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      progress.current = max > 0 ? scrollY / max : 0;
+      setTravel(progress.current);
+      const nodes = [...document.querySelectorAll('.chapter')];
+      let nearest = 0, distance = Infinity;
+      nodes.forEach((node, i) => {
+        const rect = node.getBoundingClientRect();
+        const centerDistance = (rect.top + rect.height / 2 - innerHeight / 2) / innerHeight;
+        const absoluteDistance = Math.abs(centerDistance);
+        if (absoluteDistance < distance) { distance = absoluteDistance; nearest = i; }
+        if (i === 0) return;
+        const intensity = Math.max(0, Math.min(1, 1 - absoluteDistance / .95));
+        const eased = intensity * intensity * (3 - 2 * intensity);
+        const dock = node.querySelector('.screen-dock');
+        if (!dock) return;
+        dock.style.setProperty('--spatial-scale', (.24 + eased * .76).toFixed(3));
+        dock.style.setProperty('--spatial-opacity', Math.max(0, (eased - .06) / .94).toFixed(3));
+        dock.style.setProperty('--spatial-blur', `${((1 - eased) * 8).toFixed(2)}px`);
+        dock.style.setProperty('--spatial-y', `${(centerDistance * 62).toFixed(1)}px`);
+        dock.style.setProperty('--spatial-z', String(5 + Math.round(eased * 12)));
+      });
+      setActive(nearest);
+    };
+    update();
+    addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    return () => { removeEventListener('scroll', update); removeEventListener('resize', update); };
   }, []);
   useEffect(() => {
     const navigate = (event) => {
@@ -205,7 +239,10 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       if (event.key.toLowerCase() !== 'j' && event.key.toLowerCase() !== 'k') return;
       const direction = event.key.toLowerCase() === 'j' ? 1 : -1;
       const target = stations[Math.max(0, Math.min(stations.length - 1, active + direction))];
-      document.getElementById(target.id)?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+      const node = document.getElementById(target.id);
+      if (!node) return;
+      const top = target.id === 'entry' ? 0 : node.offsetTop + node.offsetHeight / 2 - innerHeight / 2;
+      scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' });
     };
     addEventListener('keydown', navigate); return () => removeEventListener('keydown', navigate);
   }, [active, terminal, reduced]);
@@ -215,36 +252,36 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     <Hud active={active} menu={menu} setMenu={setMenu} travel={travel} />
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <main>
-      <Section id="entry" index={0} eyebrow="WELCOME TO THE NEURAL FACILITY" className="hero-chapter">
+      <Section id="entry" index={0} eyebrow="WELCOME TO THE NEURAL FACILITY" className="hero-chapter" active={active === 0}>
         <div className="hero-kicker"><i /> AVAILABLE FOR SELECT COLLABORATIONS</div>
         <h1>THE MIND<br />ENGINEERS<br /><em>THE MACHINE.</em></h1>
         <p className="hero-lead">AI agents, full-stack systems and high-impact interfaces engineered from research core to production surface.</p>
-        <div className="hero-cta"><a href="#featured">ENTER FACILITY <ArrowDown /></a><a href="#contact">START A PROJECT <Send /></a></div>
+        <div className="hero-cta"><a href="#featured" onClick={(event) => { event.preventDefault(); const node = document.getElementById('featured'); scrollTo({ top: node.offsetTop + node.offsetHeight / 2 - innerHeight / 2, behavior: reduced ? 'auto' : 'smooth' }); }}>ENTER FACILITY <ArrowDown /></a><a href="#contact" onClick={(event) => { event.preventDefault(); const node = document.getElementById('contact'); scrollTo({ top: node.offsetTop + node.offsetHeight / 2 - innerHeight / 2, behavior: reduced ? 'auto' : 'smooth' }); }}>START A PROJECT <Send /></a></div>
         <div className="hero-stats"><div><b>10</b><span>YEARS PROGRAMMING</span></div><div><b>7</b><span>YEARS FRONTEND</span></div><div><b>7</b><span>YEARS AI</span></div><div><b>15+</b><span>COMPANY COLLABS</span></div></div>
         <div className="operator-seal" aria-hidden="true"><span>MER23LIN</span><b>M/23</b><small>ENGINEERED INTELLIGENCE</small></div>
       </Section>
 
-      <Section id="featured" index={1} eyebrow="SELECTED PROOF" title="FEATURED PROJECT VAULT" side="right"><p className="section-lead">Real problems, explicit roles, inspectable engineering decisions and outcomes.</p><Featured items={featuredProjects} /></Section>
+      <Section id="featured" index={1} eyebrow="SELECTED PROOF" title="FEATURED PROJECT VAULT" side="right" active={active === 1}><p className="section-lead">Real problems, explicit roles, inspectable engineering decisions and outcomes.</p><Featured items={featuredProjects} /></Section>
 
-      <Section id="profile" index={2} eyebrow="AUTHORIZED OPERATOR" title="AMIRREZA GHAFFARIAN">
+      <Section id="profile" index={2} eyebrow="AUTHORIZED OPERATOR" title="AMIRREZA GHAFFARIAN" active={active === 2}>
         <div className="operator"><div className="operator__photo"><img src="https://github.com/Amirgh23.png?size=600" alt="Amirreza Ghaffarian" /><i /></div><div className="operator__copy"><h3>AI AGENT ENGINEER<br /><span>FULL-STACK DEVELOPER</span></h3><p>Engineering autonomous intelligence, production web platforms and visually ambitious digital experiences.</p><dl><div><dt>LOCATION</dt><dd>MASHHAD · IRAN</dd></div><div><dt>ACADEMIC CORE</dt><dd>M.Sc. AI &amp; ROBOTICS · 2026</dd></div><div><dt>STATUS</dt><dd>● OPERATIONAL</dd></div></dl><a href="https://jobinja.ir/user/NL-1212752" target="_blank" rel="noreferrer"><Briefcase /> SOURCE RESUME</a></div></div>
       </Section>
 
-      <Section id="skills" index={3} eyebrow="CAPABILITY MATRIX" title="ENGINEERING STACK" side="right">
+      <Section id="skills" index={3} eyebrow="CAPABILITY MATRIX" title="ENGINEERING STACK" side="right" active={active === 3}>
         <div className="skill-matrix">{skillGroups.map((group,i)=><article key={group.domain}><div><Code2 /><span>0{i+1}</span></div><h3>{group.domain}</h3><b>{group.signal}</b><p>{group.tools.join(' · ')}</p></article>)}</div>
       </Section>
 
-      <Section id="experience" index={4} eyebrow="PROFESSIONAL TRAJECTORY" title="EXPERIENCE LOG">
+      <Section id="experience" index={4} eyebrow="PROFESSIONAL TRAJECTORY" title="EXPERIENCE LOG" active={active === 4}>
         <div className="work-log">{experience.map((item,i)=><article key={`${item.company}-${item.period}`}><b>0{i+1}</b><div><small>{item.period} // {item.location}</small><h3>{item.role}</h3><h4>{item.website?<a href={item.website} target="_blank" rel="noreferrer">{item.company} ↗</a>:item.company}</h4><p>{item.description}</p><div>{item.tags.map(tag=><span key={tag}>{tag}</span>)}</div></div></article>)}</div>
         <div className="education"><GraduationCap /><span>ACADEMIC CORE</span><b>M.Sc. AI &amp; ROBOTICS · COMPLETED 2026</b><small>Islamic Azad University, Mashhad</small></div>
       </Section>
 
-      <Section id="projects" index={5} eyebrow="PUBLIC NETWORK" title="ALL PUBLIC NODES" side="right">
+      <Section id="projects" index={5} eyebrow="PUBLIC NETWORK" title="ALL PUBLIC NODES" side="right" active={active === 5}>
         <div className="archive-tools"><label>SEARCH NETWORK<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="NAME, LANGUAGE OR CAPABILITY" /></label><div><b>{filtered.length}</b> / {projects.length} ONLINE</div></div>
         <div className="node-grid">{filtered.map((project,i)=><a href={project.url} target="_blank" rel="noreferrer" key={project.id} style={{'--node':project.color,'clipPath':cut}}><small>{project.id} // {project.language}</small><h3>{project.title}</h3><p>{project.description}</p><span>{project.type}</span><b>{String(i+1).padStart(2,'0')}</b></a>)}</div>
       </Section>
 
-      <Section id="contact" index={6} eyebrow="FINAL TRANSMISSION" className="contact-chapter">
+      <Section id="contact" index={6} eyebrow="FINAL TRANSMISSION" className="contact-chapter" active={active === 6}>
         <p className="pre-manifesto">THE FUTURE IS NOT PREDICTED.</p><h2 className="manifesto" aria-label={manifestoText}>{[...manifestoText].map((char,i)=><span aria-hidden="true" key={`${char}-${i}`} className={char===' '?'space':''} style={{'--d':`${8+i%4*.8}s`,'--delay':`${-i*.73}s`}}>{char===' '?'\u00a0':char}</span>)}</h2>
         <p className="contact-lead">Have an ambitious AI, frontend or full-stack project? Establish a direct uplink.</p>
         <div className="contact-grid"><a href="tel:+989152389023"><Phone /><span><small>DIRECT LINE</small>+98 915 238 9023</span></a><a href="https://t.me/ARGHN23" target="_blank" rel="noreferrer"><Send /><span><small>TELEGRAM</small>@ARGHN23</span></a><a href="https://www.instagram.com/amir_.gh23" target="_blank" rel="noreferrer"><Instagram /><span><small>INSTAGRAM</small>@amir_.gh23</span></a></div>
