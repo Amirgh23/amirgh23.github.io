@@ -693,11 +693,26 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       wheelIntent.current = 0;
       if (nextStation !== activeRef.current) navigate(nextStation);
     };
-    const onTouchStart = (event) => { touchStart.current = event.touches[0]?.clientX ?? null; };
+    const onTouchStart = (event) => {
+      const touch = event.touches[0];
+      const panel = event.target.closest('.chapter__panel');
+      touchStart.current = touch ? { x: touch.clientX, y: touch.clientY, panel, scrollTop: panel?.scrollTop || 0, scrollHeight: panel?.scrollHeight || 0, clientHeight: panel?.clientHeight || 0 } : null;
+    };
     const onTouchEnd = (event) => {
-      if (touchStart.current == null) return;
-      const delta = touchStart.current - (event.changedTouches[0]?.clientX ?? touchStart.current);
-      if (Math.abs(delta) > 42) navigate(activeRef.current + (delta > 0 ? 1 : -1));
+      const start = touchStart.current;
+      const touch = event.changedTouches[0];
+      if (!start || !touch) return;
+      const deltaX = start.x - touch.clientX;
+      const deltaY = start.y - touch.clientY;
+      if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 42) { touchStart.current = null; return; }
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        navigate(activeRef.current + (deltaX > 0 ? 1 : -1));
+      } else {
+        const canKeepScrolling = start.panel && start.scrollHeight > start.clientHeight + 2 && (deltaY > 0
+          ? start.scrollTop + start.clientHeight < start.scrollHeight - 2
+          : start.scrollTop > 2);
+        if (!canKeepScrolling) navigate(activeRef.current + (deltaY > 0 ? 1 : -1));
+      }
       touchStart.current = null;
     };
     addEventListener('keydown', onKey); addEventListener('wheel', onWheel, { passive: false });
