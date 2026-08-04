@@ -36,7 +36,7 @@ function BootSequence({ done }) {
       <div className="boot__readout">NEURAL FACILITY // VISITOR BOOT</div>
       {lines.map((line, index) => <p key={line} className={index < step ? 'is-ready' : ''}><b>0{index + 1}</b>{line}<span>{index < step ? 'ONLINE' : 'WAIT'}</span></p>)}
       <div className="boot__bar"><i style={{ width: `${step / lines.length * 100}%` }} /></div>
-      {ready ? <div className="boot__entry" role="dialog" aria-modal="true" aria-label="Enter portfolio with background music"><b>SYSTEM READY</b><p>BACKGROUND AUDIO WILL START ON ENTRY</p><button type="button" onClick={() => { window.dispatchEvent(new Event('mer23lin:enter')); done(); }}><Volume2 /> ENTER WITH SOUND</button></div> : <small>INITIALIZING VISITOR CHANNEL...</small>}
+      {ready ? <div className="boot__entry" role="dialog" aria-modal="true" aria-label="Choose how to enter the portfolio"><b>SYSTEM READY</b><p>CHOOSE YOUR AUDIO MODE</p><div className="boot__actions"><button type="button" onClick={() => { window.dispatchEvent(new Event('mer23lin:enter')); done(); }}><Volume2 /> ENTER WITH SOUND</button><button className="is-muted" type="button" onClick={done}><VolumeX /> ENTER WITHOUT SOUND</button></div></div> : <small>INITIALIZING VISITOR CHANNEL...</small>}
     </div>
   </motion.div>;
 }
@@ -436,14 +436,12 @@ function CyberAudioToggle() {
   const [enabled, setEnabled] = useState(false);
   const [track, setTrack] = useState(() => localStorage.getItem('mer23lin-track') || '1');
   const selected = tracks.find((item) => item.id === track) || tracks[0];
-  const loadTrack = async (src) => {
+  const cacheTrack = async (src) => {
     const cache = 'caches' in window ? await caches.open(cacheName) : null;
-    const cached = cache ? await cache.match(src) : null;
-    if (cached) return URL.createObjectURL(await cached.blob());
+    if (!cache || await cache.match(src)) return;
     const response = await fetch(src, { cache: 'force-cache' });
     if (!response.ok) throw new Error(`Audio unavailable: ${response.status}`);
-    if (cache) await cache.put(src, response.clone());
-    return URL.createObjectURL(await response.blob());
+    await cache.put(src, response);
   };
   const stopAudio = () => { audio.current?.pause(); setEnabled(false); };
   const startAudio = async (nextTrack = selected) => {
@@ -451,14 +449,14 @@ function CyberAudioToggle() {
     const player = audio.current;
     if (!player.src || player.dataset.track !== nextTrack.id) {
       player.pause();
-      if (player.src?.startsWith('blob:')) URL.revokeObjectURL(player.src);
-      player.src = await loadTrack(nextTrack.src);
+      player.src = nextTrack.src;
       player.dataset.track = nextTrack.id;
       player.loop = true;
       player.volume = .18;
     }
     await player.play();
     setEnabled(true);
+    cacheTrack(nextTrack.src).catch(() => {});
   };
   const changeTrack = (direction) => {
     const currentIndex = tracks.findIndex((item) => item.id === selected.id);
@@ -474,7 +472,6 @@ function CyberAudioToggle() {
     return () => {
       removeEventListener('mer23lin:enter', enterWithSound);
       audio.current?.pause();
-      if (audio.current?.src?.startsWith('blob:')) URL.revokeObjectURL(audio.current.src);
     };
   }, []);
   const toggle = () => { if (enabled) stopAudio(); else startAudio().catch(() => setEnabled(false)); };
