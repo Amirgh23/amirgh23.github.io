@@ -4,7 +4,7 @@ import { Line, Stars } from '@react-three/drei';
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Briefcase, Code2, Github, GraduationCap,
-  Instagram, Linkedin, Menu, Phone, Send, Terminal as TerminalIcon, Volume2, VolumeX, X,
+  Instagram, Linkedin, Menu, Phone, Send, SkipBack, SkipForward, Terminal as TerminalIcon, Volume2, VolumeX, X,
 } from 'lucide-react';
 import * as THREE from 'three';
 
@@ -434,7 +434,7 @@ function CyberAudioToggle() {
     { id: '3', label: 'TRACK 03', src: '/audio/3.mp3' },
   ];
   const [enabled, setEnabled] = useState(false);
-  const [track, setTrack] = useState(() => localStorage.getItem('mer23lin-track') || '1');
+  const [track, setTrack] = useState(() => tracks[Math.floor(Math.random() * tracks.length)].id);
   const selected = tracks.find((item) => item.id === track) || tracks[0];
   const cacheTrack = async (src) => {
     const cache = 'caches' in window ? await caches.open(cacheName) : null;
@@ -480,7 +480,7 @@ function CyberAudioToggle() {
     };
   }, []);
   const toggle = () => { if (enabled) stopAudio(); else startAudio().catch(() => setEnabled(false)); };
-  return <div className="audio-controls"><button className="audio-skip" type="button" onClick={() => changeTrack(-1)} aria-label="Previous background track"><ArrowLeft /></button><button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn background music off' : 'Turn background music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{selected.label}{enabled ? '' : ' · OFF'}</span></button><button className="audio-skip" type="button" onClick={() => changeTrack(1)} aria-label="Next background track"><ArrowRight /></button></div>;
+  return <div className="audio-controls"><button className="audio-skip" type="button" onClick={() => changeTrack(-1)} aria-label="Previous background track"><SkipBack /></button><button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn background music off' : 'Turn background music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{selected.label}{enabled ? '' : ' · OFF'}</span></button><button className="audio-skip" type="button" onClick={() => changeTrack(1)} aria-label="Next background track"><SkipForward /></button></div>;
 }
 
 function Hud({ active, menu, setMenu, navigate, cityProgress }) {
