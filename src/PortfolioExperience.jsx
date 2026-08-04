@@ -530,13 +530,14 @@ function CursorSignal() {
 
 function Section({ id, index, eyebrow, title, side = 'left', children, className = '', active = false, direction = 1 }) {
   const reduceMotion = useReducedMotion();
+  const mobile = matchMedia('(max-width: 760px)').matches;
   const screenColors = ['#00eaff', '#ff24c8', '#00eaff', '#9b6cff', '#00eaff', '#ff24c8', '#00eaff'];
-  const variants = reduceMotion ? { enter: { opacity: 1 }, center: { opacity: 1 }, exit: { opacity: 0 } } : {
+  const variants = reduceMotion || mobile ? { enter: { opacity: 1 }, center: { opacity: 1 }, exit: { opacity: 0 } } : {
     enter: (way) => ({ opacity: 0, scale: .72, rotateY: way * -12, x: way * 170, filter: 'blur(14px)' }),
     center: { opacity: 1, scale: 1, rotateY: 0, x: 0, filter: 'blur(0px)' },
     exit: (way) => ({ opacity: 0, scale: 1.16, rotateY: way * 8, x: way * -120, filter: 'blur(12px)' }),
   };
-  return <AnimatePresence mode="sync" custom={direction}>{active && <motion.section key={id} id={id} className={`chapter chapter--${side} ${className} is-console-active`} data-index={index} style={{ '--screen': screenColors[index] }} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ type: 'spring', stiffness: 145, damping: 24, mass: .72, opacity: { duration: .24 }, filter: { duration: .3 } }}>
+  return <AnimatePresence mode="sync" custom={direction}>{active && <motion.section key={id} id={id} className={`chapter chapter--${side} ${className} is-console-active`} data-index={index} style={{ '--screen': screenColors[index] }} custom={direction} variants={variants} initial={mobile ? false : 'enter'} animate="center" exit="exit" transition={{ type: 'spring', stiffness: 145, damping: 24, mass: .72, opacity: { duration: .24 }, filter: { duration: .3 } }}>
     <motion.div className="screen-dock console-window">
       <div className="screen-hardware" aria-hidden="true"><i /><i /><i /><b>DISPLAY M23-{String(index).padStart(2, '0')}</b><span>◈</span></div>
       <div className="chapter__panel">
