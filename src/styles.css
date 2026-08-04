@@ -177,5 +177,5 @@ html,#root{width:100%;min-height:100%;overflow-x:hidden}html{scroll-behavior:aut
   .chapter__panel h1,.chapter__panel h2,.chapter__panel h3,.chapter__panel h4,.chapter__panel p,.chapter__panel a,.chapter__panel span,.chapter__panel b,.chapter__panel small,.chapter__panel dd{max-width:100%;overflow-wrap:anywhere;word-break:normal}
   .case-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.case-tabs button{min-width:0}.case-console article{padding:20px 14px}.case-title,.case-grid,.operator,.skill-matrix,.contact-grid{min-width:0}.operator__photo{max-height:42svh}.work-log article{min-width:0}.education{grid-template-columns:auto minmax(0,1fr)}
   .manifesto{font-size:clamp(34px,11vw,52px)!important;overflow-wrap:anywhere}.contact-grid a{min-width:0}.social-row a{white-space:normal}
-  .terminal-trigger{left:10px;bottom:10px}.flight-deck{right:10px;bottom:10px;max-width:calc(100vw - 70px)}
+  .terminal-trigger{left:10px;bottom:10px}.flight-deck{left:50%;right:auto;bottom:10px;transform:translateX(-50%);max-width:calc(100vw - 20px)}
 }
