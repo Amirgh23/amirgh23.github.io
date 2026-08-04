@@ -21,10 +21,11 @@ const stations = [
 
 function BootSequence({ done }) {
   const [step, setStep] = useState(0);
+  const ready = step >= 5;
   const lines = ['WAKE NEURAL FACILITY', 'SYNC AUTONOMOUS CORE', 'MAP PROJECT VAULT', 'VERIFY OPERATOR', 'OPEN VISITOR CHANNEL'];
   useEffect(() => {
     const id = setInterval(() => setStep((value) => {
-      if (value >= lines.length) { clearInterval(id); setTimeout(done, 260); return value; }
+      if (value >= lines.length) { clearInterval(id); return value; }
       return value + 1;
     }), 210);
     return () => clearInterval(id);
@@ -35,7 +36,7 @@ function BootSequence({ done }) {
       <div className="boot__readout">NEURAL FACILITY // VISITOR BOOT</div>
       {lines.map((line, index) => <p key={line} className={index < step ? 'is-ready' : ''}><b>0{index + 1}</b>{line}<span>{index < step ? 'ONLINE' : 'WAIT'}</span></p>)}
       <div className="boot__bar"><i style={{ width: `${step / lines.length * 100}%` }} /></div>
-      <small>SCROLL TO DRIVE · SWIPE / J K TO JUMP · NO AUDIO REQUIRED</small>
+      {ready ? <div className="boot__entry" role="dialog" aria-modal="true" aria-label="Enter portfolio with background music"><b>SYSTEM READY</b><p>BACKGROUND AUDIO WILL START ON ENTRY</p><button type="button" onClick={() => { window.dispatchEvent(new Event('mer23lin:enter')); done(); }}><Volume2 /> ENTER WITH SOUND</button></div> : <small>INITIALIZING VISITOR CHANNEL...</small>}
     </div>
   </motion.div>;
 }
@@ -467,14 +468,10 @@ function CyberAudioToggle() {
     startAudio(nextTrack).catch(() => setEnabled(false));
   };
   useEffect(() => {
-    const resumeAfterInteraction = () => startAudio().catch(() => setEnabled(false));
-    startAudio().catch(() => {
-      addEventListener('pointerdown', resumeAfterInteraction, { once: true });
-      addEventListener('keydown', resumeAfterInteraction, { once: true });
-    });
+    const enterWithSound = () => startAudio().catch(() => setEnabled(false));
+    addEventListener('mer23lin:enter', enterWithSound);
     return () => {
-      removeEventListener('pointerdown', resumeAfterInteraction);
-      removeEventListener('keydown', resumeAfterInteraction);
+      removeEventListener('mer23lin:enter', enterWithSound);
       audio.current?.pause();
       if (audio.current?.src?.startsWith('blob:')) URL.revokeObjectURL(audio.current.src);
     };
@@ -712,7 +709,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       <Section id="featured" index={1} eyebrow="SELECTED PROOF" title="FEATURED PROJECT VAULT" side="right" active={active === 1} direction={direction}><p className="section-lead">Real problems, explicit roles, inspectable engineering decisions and outcomes.</p><Featured items={featuredProjects} /></Section>
 
       <Section id="profile" index={2} eyebrow="AUTHORIZED OPERATOR" title="AMIRREZA GHAFFARIAN" active={active === 2} direction={direction}>
-        <div className="operator"><div className="operator__photo"><img src="https://github.com/Amirgh23.png?size=600" alt="Amirreza Ghaffarian" /><i /></div><div className="operator__copy"><h3>AI AGENT ENGINEER<br /><span>FULL-STACK DEVELOPER</span></h3><p>Engineering autonomous intelligence, production web platforms and visually ambitious digital experiences.</p><dl><div><dt>LOCATION</dt><dd>MASHHAD · IRAN</dd></div><div><dt>ACADEMIC CORE</dt><dd>M.Sc. AI &amp; ROBOTICS · 2026</dd></div><div><dt>STATUS</dt><dd>● OPERATIONAL</dd></div></dl><a href="https://jobinja.ir/user/NL-1212752" target="_blank" rel="noreferrer"><Briefcase /> SOURCE RESUME</a></div></div>
+        <div className="operator"><div className="operator__photo"><img src="/profile.png" alt="Amirreza Ghaffarian" loading="eager" decoding="async" /><i /></div><div className="operator__copy"><h3>AI AGENT ENGINEER<br /><span>FULL-STACK DEVELOPER</span></h3><p>Engineering autonomous intelligence, production web platforms and visually ambitious digital experiences.</p><dl><div><dt>LOCATION</dt><dd>MASHHAD · IRAN</dd></div><div><dt>ACADEMIC CORE</dt><dd>M.Sc. AI &amp; ROBOTICS · 2026</dd></div><div><dt>STATUS</dt><dd>● OPERATIONAL</dd></div></dl><a href="https://jobinja.ir/user/NL-1212752" target="_blank" rel="noreferrer"><Briefcase /> SOURCE RESUME</a></div></div>
       </Section>
 
       <Section id="skills" index={3} eyebrow="CAPABILITY MATRIX" title="ENGINEERING STACK" side="right" active={active === 3} direction={direction}>
