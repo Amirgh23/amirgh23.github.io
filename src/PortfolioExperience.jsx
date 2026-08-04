@@ -586,8 +586,12 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
   useEffect(() => {
     const media = matchMedia('(max-width: 760px)');
     const syncMobile = () => setIsMobile(media.matches);
-    media.addEventListener('change', syncMobile);
-    return () => media.removeEventListener('change', syncMobile);
+    document.documentElement.classList.toggle('firefox-mobile', /Firefox/i.test(navigator.userAgent) && media.matches);
+    if (media.addEventListener) media.addEventListener('change', syncMobile); else media.addListener(syncMobile);
+    return () => {
+      document.documentElement.classList.remove('firefox-mobile');
+      if (media.removeEventListener) media.removeEventListener('change', syncMobile); else media.removeListener(syncMobile);
+    };
   }, []);
   const setStation = (bounded) => {
     if (bounded === activeRef.current) return;
