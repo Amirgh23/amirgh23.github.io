@@ -424,83 +424,49 @@ function World({ active, reduced, travel }) {
 }
 
 function CyberAudioToggle() {
-  const engine = useRef(null);
+  const audio = useRef(null);
+  const cacheName = 'mer23lin-audio-v1';
+  const tracks = [
+    { id: '1', label: 'TRACK 01', src: '/audio/1.mp3' },
+    { id: '2', label: 'TRACK 02', src: '/audio/2.mp3' },
+    { id: '3', label: 'TRACK 03', src: '/audio/3.mp3' },
+  ];
   const [enabled, setEnabled] = useState(false);
-  const stopAudio = () => {
-    if (!engine.current) return;
-    clearInterval(engine.current.timer);
-    engine.current.context.close();
-    engine.current = null;
-    setEnabled(false);
+  const [track, setTrack] = useState(() => localStorage.getItem('mer23lin-track') || '1');
+  const selected = tracks.find((item) => item.id === track) || tracks[0];
+  const loadTrack = async (src) => {
+    const cache = 'caches' in window ? await caches.open(cacheName) : null;
+    const cached = cache ? await cache.match(src) : null;
+    if (cached) return URL.createObjectURL(await cached.blob());
+    const response = await fetch(src, { cache: 'force-cache' });
+    if (!response.ok) throw new Error(`Audio unavailable: ${response.status}`);
+    if (cache) await cache.put(src, response.clone());
+    return URL.createObjectURL(await response.blob());
   };
-  const startAudio = async () => {
-    const AudioEngine = window.AudioContext || window.webkitAudioContext;
-    if (!AudioEngine || engine.current) return;
-    const context = new AudioEngine();
-    await context.resume();
-    const master = context.createGain();
-    const compressor = context.createDynamicsCompressor();
-    const delay = context.createDelay(.6);
-    const feedback = context.createGain();
-    master.gain.value = .13;
-    delay.delayTime.value = .115;
-    feedback.gain.value = .18;
-    delay.connect(feedback); feedback.connect(delay); delay.connect(master);
-    master.connect(compressor); compressor.connect(context.destination);
-
-    const tone = (frequency, duration, level, type = 'triangle', detune = 0) => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      const filter = context.createBiquadFilter();
-      const now = context.currentTime;
-      oscillator.type = type; oscillator.frequency.value = frequency; oscillator.detune.value = detune;
-      filter.type = 'lowpass'; filter.frequency.value = type === 'square' ? 4200 : 1200; filter.Q.value = 2.5;
-      gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(level, now + .006); gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
-      oscillator.connect(filter); filter.connect(gain); gain.connect(master); gain.connect(delay);
-      oscillator.start(now); oscillator.stop(now + duration + .03);
-    };
-    const noiseBuffer = context.createBuffer(1, Math.floor(context.sampleRate * .055), context.sampleRate);
-    const noiseData = noiseBuffer.getChannelData(0);
-    for (let index = 0; index < noiseData.length; index += 1) noiseData[index] = Math.random() * 2 - 1;
-    const chipHat = (level = .026) => {
-      const source = context.createBufferSource();
-      const filter = context.createBiquadFilter();
-      const gain = context.createGain();
-      const now = context.currentTime;
-      source.buffer = noiseBuffer; filter.type = 'highpass'; filter.frequency.value = 4200;
-      gain.gain.setValueAtTime(level, now); gain.gain.exponentialRampToValueAtTime(.0001, now + .045);
-      source.connect(filter); filter.connect(gain); gain.connect(master); source.start(now);
-    };
-    const chipKick = () => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      const now = context.currentTime;
-      oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(135, now); oscillator.frequency.exponentialRampToValueAtTime(46, now + .105);
-      gain.gain.setValueAtTime(.11, now); gain.gain.exponentialRampToValueAtTime(.0001, now + .12);
-      oscillator.connect(gain); gain.connect(master); oscillator.start(now); oscillator.stop(now + .13);
-    };
-    const sequence = [261.63, 392, 523.25, 622.25, 311.13, 466.16, 622.25, 783.99, 349.23, 523.25, 698.46, 523.25, 293.66, 440, 587.33, 440];
-    const bass = [65.41, 77.78, 87.31, 73.42];
-    let step = 0;
-    const pulse = () => {
-      tone(sequence[step % sequence.length], .105, .052, 'square', step % 2 ? 4 : -4);
-      if (step % 4 === 0) { chipKick(); tone(bass[(step / 4) % bass.length], .38, .078, 'triangle'); }
-      if (step % 2 === 1) chipHat(step % 4 === 3 ? .032 : .022);
-      if (step % 8 === 6) tone(sequence[step % sequence.length] * 2, .07, .018, 'square');
-      step += 1;
-    };
-    pulse();
-    engine.current = { context, timer: setInterval(pulse, 142) };
+  const stopAudio = () => { audio.current?.pause(); setEnabled(false); };
+  const startAudio = async (nextTrack = selected) => {
+    if (!audio.current) audio.current = new Audio();
+    const player = audio.current;
+    if (!player.src || player.dataset.track !== nextTrack.id) {
+      player.pause();
+      if (player.src?.startsWith('blob:')) URL.revokeObjectURL(player.src);
+      player.src = await loadTrack(nextTrack.src);
+      player.dataset.track = nextTrack.id;
+      player.loop = true;
+      player.volume = .18;
+    }
+    await player.play();
     setEnabled(true);
   };
-  useEffect(() => () => {
-    if (!engine.current) return;
-    clearInterval(engine.current.timer);
-    engine.current.context.close();
-    engine.current = null;
-  }, []);
+  const chooseTrack = async (event) => {
+    const next = event.target.value;
+    const nextTrack = tracks.find((item) => item.id === next) || tracks[0];
+    setTrack(next); localStorage.setItem('mer23lin-track', next);
+    if (enabled) { setEnabled(false); startAudio(nextTrack).catch(() => setEnabled(false)); }
+  };
+  useEffect(() => () => { audio.current?.pause(); if (audio.current?.src?.startsWith('blob:')) URL.revokeObjectURL(audio.current.src); }, []);
   const toggle = () => { if (enabled) stopAudio(); else startAudio().catch(() => setEnabled(false)); };
-  return <button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn 8-bit arcade music off' : 'Turn 8-bit arcade music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{enabled ? '8-BIT ON' : '8-BIT OFF'}</span></button>;
+  return <div className="audio-controls"><select value={track} onChange={chooseTrack} aria-label="Choose background music">{tracks.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select><button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn background music off' : 'Turn background music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{enabled ? selected.label : 'MUSIC OFF'}</span></button></div>;
 }
 
 function Hud({ active, menu, setMenu, navigate, cityProgress }) {
