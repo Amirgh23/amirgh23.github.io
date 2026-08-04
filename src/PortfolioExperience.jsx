@@ -468,9 +468,14 @@ function CyberAudioToggle() {
   };
   useEffect(() => {
     const enterWithSound = () => startAudio().catch(() => setEnabled(false));
+    const stopWhenHidden = () => { if (document.hidden) stopAudio(); };
     addEventListener('mer23lin:enter', enterWithSound);
+    document.addEventListener('visibilitychange', stopWhenHidden);
+    addEventListener('pagehide', stopAudio);
     return () => {
       removeEventListener('mer23lin:enter', enterWithSound);
+      document.removeEventListener('visibilitychange', stopWhenHidden);
+      removeEventListener('pagehide', stopAudio);
       audio.current?.pause();
     };
   }, []);
