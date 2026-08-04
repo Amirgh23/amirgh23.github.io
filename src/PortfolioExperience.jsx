@@ -418,7 +418,8 @@ function Facility({ active, reduced, travel }) {
   return <JourneyWorld active={active} reduced={reduced} travel={travel} />;
 }
 
-function World({ active, reduced, travel }) {
+function World({ active, reduced, travel, mobile }) {
+  if (mobile) return <div className="world world--mobile cyber-desk" aria-hidden="true" />;
   return <div className="world cyber-desk" aria-hidden="true"><Canvas camera={{ position: [0, .85, 8.8], fov: 50 }} dpr={[1, 1.4]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
     <Suspense fallback={null}><Facility active={active} reduced={reduced} travel={travel} /></Suspense>
   </Canvas></div>;
@@ -574,8 +575,15 @@ function Terminal({ open, close, projects }) {
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
   const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1), [cityProgress, setCityProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(() => matchMedia('(max-width: 760px)').matches);
   const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null), snapTimer = useRef(null), routeTarget = useRef(null), scrollAnimation = useRef(null), wheelIntent = useRef(0), wheelResetTimer = useRef(null); const reduced = useReducedMotion();
   const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
+  useEffect(() => {
+    const media = matchMedia('(max-width: 760px)');
+    const syncMobile = () => setIsMobile(media.matches);
+    media.addEventListener('change', syncMobile);
+    return () => media.removeEventListener('change', syncMobile);
+  }, []);
   const setStation = (bounded) => {
     if (bounded === activeRef.current) return;
     setDirection(bounded > activeRef.current ? 1 : -1);
@@ -588,6 +596,13 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     const checkpoint = bounded / (stations.length - 1);
     clearTimeout(snapTimer.current);
     scrollAnimation.current?.stop();
+    if (isMobile) {
+      routeTarget.current = null;
+      travelRef.current = checkpoint;
+      setCityProgress(checkpoint);
+      setStation(bounded);
+      return;
+    }
     routeTarget.current = bounded;
     if (announce) setStation(bounded);
     const updateRoute = (progress) => {
@@ -622,6 +637,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       activeRef.current = initial; travelRef.current = initialProgress; setActive(initial); setCityProgress(initialProgress);
     }
     const syncCityToScroll = () => {
+      if (isMobile) return;
       const maxScroll = document.documentElement.scrollHeight - innerHeight;
       const nextProgress = maxScroll > 0 ? THREE.MathUtils.clamp(scrollY / maxScroll, 0, 1) : 0;
       travelRef.current = nextProgress;
@@ -644,7 +660,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     });
     addEventListener('scroll', syncCityToScroll, { passive: true });
     return () => { clearTimeout(snapTimer.current); scrollAnimation.current?.stop(); removeEventListener('scroll', syncCityToScroll); };
-  }, [reduced]);
+  }, [reduced, isMobile]);
   useEffect(() => {
     const onKey = (event) => {
       if (event.target.matches('input') || terminal) return;
@@ -693,7 +709,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
   }, [terminal]);
   return <><div className="experience-shell">
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
-    <World active={active} reduced={reduced} travel={travelRef} /><div className="noise" /><div className="scanlines" /><CursorSignal />
+    <World active={active} reduced={reduced} travel={travelRef} mobile={isMobile} /><div className="noise" /><div className="scanlines" /><CursorSignal />
     <Hud active={active} menu={menu} setMenu={setMenu} navigate={navigate} cityProgress={cityProgress} />
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <main className="console-stage" data-station={stations[active].code}>
