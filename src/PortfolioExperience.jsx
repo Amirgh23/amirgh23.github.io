@@ -458,15 +458,29 @@ function CyberAudioToggle() {
     await player.play();
     setEnabled(true);
   };
-  const chooseTrack = async (event) => {
-    const next = event.target.value;
-    const nextTrack = tracks.find((item) => item.id === next) || tracks[0];
-    setTrack(next); localStorage.setItem('mer23lin-track', next);
-    if (enabled) { setEnabled(false); startAudio(nextTrack).catch(() => setEnabled(false)); }
+  const changeTrack = (direction) => {
+    const currentIndex = tracks.findIndex((item) => item.id === selected.id);
+    const nextTrack = tracks[(currentIndex + direction + tracks.length) % tracks.length];
+    setTrack(nextTrack.id);
+    localStorage.setItem('mer23lin-track', nextTrack.id);
+    setEnabled(false);
+    startAudio(nextTrack).catch(() => setEnabled(false));
   };
-  useEffect(() => () => { audio.current?.pause(); if (audio.current?.src?.startsWith('blob:')) URL.revokeObjectURL(audio.current.src); }, []);
+  useEffect(() => {
+    const resumeAfterInteraction = () => startAudio().catch(() => setEnabled(false));
+    startAudio().catch(() => {
+      addEventListener('pointerdown', resumeAfterInteraction, { once: true });
+      addEventListener('keydown', resumeAfterInteraction, { once: true });
+    });
+    return () => {
+      removeEventListener('pointerdown', resumeAfterInteraction);
+      removeEventListener('keydown', resumeAfterInteraction);
+      audio.current?.pause();
+      if (audio.current?.src?.startsWith('blob:')) URL.revokeObjectURL(audio.current.src);
+    };
+  }, []);
   const toggle = () => { if (enabled) stopAudio(); else startAudio().catch(() => setEnabled(false)); };
-  return <div className="audio-controls"><select value={track} onChange={chooseTrack} aria-label="Choose background music">{tracks.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select><button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn background music off' : 'Turn background music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{enabled ? selected.label : 'MUSIC OFF'}</span></button></div>;
+  return <div className="audio-controls"><button className="audio-skip" type="button" onClick={() => changeTrack(-1)} aria-label="Previous background track"><ArrowLeft /></button><button className={`audio-toggle ${enabled ? 'is-on' : ''}`} type="button" onClick={toggle} aria-pressed={enabled} aria-label={enabled ? 'Turn background music off' : 'Turn background music on'}>{enabled ? <Volume2 /> : <VolumeX />}<span>{selected.label}{enabled ? '' : ' · OFF'}</span></button><button className="audio-skip" type="button" onClick={() => changeTrack(1)} aria-label="Next background track"><ArrowRight /></button></div>;
 }
 
 function Hud({ active, menu, setMenu, navigate, cityProgress }) {
