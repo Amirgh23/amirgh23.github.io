@@ -26,6 +26,7 @@ const palette = ['#00f7ff', '#ff2bd6', '#8b5cf6', '#ff304f', '#39ff14'];
 const manifestoText = 'IT IS ENGINEERED.';
 
 const projects = [
+  ['modern-neural-feature-selection', 'NEURAL FEATURE RESEARCH', 'Python', 'PSO feature selection and BiLSTM classification with a reproducible scientific web report', 0],
   ['amirgh23.github.io', 'MER23LIN INTERFACE', 'JavaScript', 'Interactive MER23LIN — autonomous intelligence command center', 0],
   ['whiplash-mode', 'WHIPLASH MODE', 'JavaScript', 'A playful local focus whip for developers who opened one file too many', 0],
   ['Amirgh23', 'PROFILE COMMAND NODE', 'JavaScript', 'Cyberpunk GitHub profile — AI, full-stack engineering and robotics from Mashhad', 0],
@@ -63,8 +64,8 @@ const featuredProjects = [
     problem: 'A conventional profile page could not show the relationship between engineering depth, professional experience and the full public project network.',
     role: 'PRODUCT DESIGN · FRONTEND ENGINEERING · CREATIVE TECHNOLOGY',
     solution: 'Built a responsive React and Three.js command interface with a live project archive, interactive neural core, terminal and accessible reduced-motion behavior.',
-    result: '18 public repositories are now searchable from one cohesive professional interface.',
-    proof: '18 REPOSITORIES INDEXED',
+    result: '19 public repositories are now searchable from one cohesive professional interface.',
+    proof: '19 REPOSITORIES INDEXED',
     stack: ['REACT', 'THREE.JS', 'FRAMER MOTION', 'GITHUB PAGES'],
     url: 'https://amirgh23.github.io/',
     source: 'https://github.com/Amirgh23/amirgh23.github.io',
@@ -108,6 +109,20 @@ const featuredProjects = [
     stack: ['PYTHON', 'FEATURE SELECTION', 'EXPERIMENTATION'],
     url: 'https://github.com/Amirgh23/pc-ehoa-feature-selection',
     accent: '#39ff14',
+  },
+  {
+    id: 'CASE-05',
+    title: 'NEURAL FEATURE RESEARCH',
+    category: 'AI RESEARCH · SCIENTIFIC WEB',
+    problem: 'The original MATLAB study needed a modern, leakage-safe implementation and a publication-style interface that made its methodology and evidence accessible.',
+    role: 'AI RESEARCH · PYTORCH · EXPERIMENT DESIGN · SCIENTIFIC COMMUNICATION',
+    solution: 'Rebuilt the workflow with binary PSO feature selection, a PyTorch BiLSTM classifier, reproducible evaluation, automated tests and an interactive scientific report.',
+    result: 'The selected-feature model reached 83.3% test accuracy and 0.875 ROC-AUC while retaining 17 of 41 input features.',
+    proof: '83.3% ACCURACY · 0.875 AUC',
+    stack: ['PYTHON', 'PYTORCH', 'PSO', 'BILSTM', 'JAVASCRIPT'],
+    url: 'https://amirgh23.github.io/modern-neural-feature-selection/',
+    source: 'https://github.com/Amirgh23/modern-neural-feature-selection',
+    accent: '#00f7ff',
   },
 ];
 
