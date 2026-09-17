@@ -554,11 +554,12 @@ function Section({ id, index, eyebrow, title, side = 'left', children, className
 function Featured({ items }) {
   const [selected, setSelected] = useState(0);
   const item = items[selected];
-  return <div className="case-console">
+  return <div className="case-console" style={{ '--case-accent': item.accent }}>
     <div className="case-tabs">{items.map((project, i) => <button key={project.id} className={i === selected ? 'active' : ''} onClick={() => setSelected(i)}><span>0{i + 1}</span>{project.title}</button>)}</div>
     <AnimatePresence mode="wait"><motion.article key={item.id} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }}>
       <div className="case-title"><span>{item.category}</span><h3>{item.title}</h3><strong>{item.proof}</strong></div>
-      <div className="case-grid"><div><small>PROBLEM</small><p>{item.problem}</p></div><div><small>SOLUTION</small><p>{item.solution}</p></div><div><small>ROLE</small><p>{item.role}</p></div><div><small>OUTCOME</small><p>{item.result}</p></div></div>
+      <div className="case-blueprint" aria-label="Engineering workflow"><span>01 / DEFINE<br /><b>Problem & constraints</b></span><ArrowRight /><span>02 / ENGINEER<br /><b>{item.stack[0]} architecture</b></span><ArrowRight /><span>03 / DELIVER<br /><b>Inspectable implementation</b></span></div>
+      <div className="case-grid"><div><small>THE CHALLENGE</small><p>{item.problem}</p></div><div><small>THE APPROACH</small><p>{item.solution}</p></div><div><small>MY CONTRIBUTION</small><p>{item.role}</p></div><div><small>THE OUTCOME</small><p>{item.result}</p></div></div>
       <div className="case-bottom"><div>{item.stack.map(tag => <span key={tag}>{tag}</span>)}</div><a href={item.url} target="_blank" rel="noreferrer">INSPECT CASE <ArrowUpRight /></a></div>
     </motion.article></AnimatePresence>
   </div>;
@@ -579,10 +580,11 @@ function Terminal({ open, close, projects }) {
 }
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
+  const [language, setLanguage] = useState('All'), [brief, setBrief] = useState('AI & automation');
   const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1), [cityProgress, setCityProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(() => matchMedia('(max-width: 760px)').matches);
   const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null), snapTimer = useRef(null), routeTarget = useRef(null), scrollAnimation = useRef(null), wheelIntent = useRef(0), wheelResetTimer = useRef(null); const reduced = useReducedMotion();
-  const filtered = projects.filter(p => `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
+  const filtered = projects.filter(p => (language === 'All' || p.language === language) && `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
   useEffect(() => {
     const media = matchMedia('(max-width: 760px)');
     const syncMobile = () => setIsMobile(media.matches);
@@ -739,10 +741,12 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     <main className="console-stage" data-station={stations[active].code}>
       <Section id="entry" index={0} eyebrow="WELCOME TO THE NEURAL FACILITY" className="hero-chapter" active={active === 0} direction={direction}>
         <div className="hero-kicker"><i /> AVAILABLE FOR SELECT COLLABORATIONS</div>
+        <div className="identity-line">AMIRREZA GHAFFARIAN <span>ENGINEER / CREATIVE TECHNOLOGIST</span></div>
         <h1>THE MIND<br />ENGINEERS<br /><em>THE MACHINE.</em></h1>
         <p className="hero-lead">AI agents, full-stack systems and high-impact interfaces engineered from research core to production surface.</p>
         <div className="hero-cta"><a href="#featured" onClick={(event) => { event.preventDefault(); navigate(1); }}>ENTER FACILITY <ArrowRight /></a><a href="#contact" onClick={(event) => { event.preventDefault(); navigate(6); }}>START A PROJECT <Send /></a></div>
         <div className="hero-stats"><div><b>10</b><span>YEARS PROGRAMMING</span></div><div><b>7</b><span>YEARS FRONTEND</span></div><div><b>7</b><span>YEARS AI</span></div><div><b>15+</b><span>COMPANY COLLABS</span></div></div>
+        <div className="discipline-strip"><span>RESEARCH → SYSTEMS → EXPERIENCE</span><b>MASHHAD, IRAN / CONNECTED WORLDWIDE</b></div>
         <div className="operator-seal" aria-hidden="true"><span>MER23LIN</span><b>M/23</b><small>ENGINEERED INTELLIGENCE</small></div>
       </Section>
 
@@ -753,6 +757,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       </Section>
 
       <Section id="skills" index={3} eyebrow="CAPABILITY MATRIX" title="ENGINEERING STACK" side="right" active={active === 3} direction={direction}>
+        <p className="section-lead">From intelligent models to the interfaces people actually use. Six connected disciplines, one end-to-end engineering practice.</p>
         <div className="skill-matrix">{skillGroups.map((group,i)=><article key={group.domain}><div><Code2 /><span>0{i+1}</span></div><h3>{group.domain}</h3><b>{group.signal}</b><p>{group.tools.join(' · ')}</p></article>)}</div>
       </Section>
 
@@ -762,13 +767,17 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       </Section>
 
       <Section id="projects" index={5} eyebrow="PUBLIC NETWORK" title="ALL PUBLIC NODES" side="right" active={active === 5} direction={direction}>
+        <p className="section-lead">Explore the source. Research experiments, interface systems and developer tools, organized by their implementation language.</p>
+        <div className="archive-filters" aria-label="Filter projects by language">{['All', ...new Set(projects.map(project => project.language))].map(value => <button key={value} aria-pressed={language === value} onClick={() => setLanguage(value)}>{value}<span>{value === 'All' ? projects.length : projects.filter(project => project.language === value).length}</span></button>)}</div>
         <div className="archive-tools"><label>SEARCH NETWORK<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="NAME, LANGUAGE OR CAPABILITY" /></label><div><b>{filtered.length}</b> / {projects.length} ONLINE</div></div>
-        <div className="node-grid">{filtered.map((project,i)=><a href={project.url} target="_blank" rel="noreferrer" key={project.id} style={{'--node':project.color,'clipPath':cut}}><small>{project.id} // {project.language}</small><h3>{project.title}</h3><p>{project.description}</p><span>{project.type}</span><b>{String(i+1).padStart(2,'0')}</b></a>)}</div>
+        <div className="node-grid">{filtered.map((project,i)=><a href={project.url} target="_blank" rel="noreferrer" key={project.id} style={{'--node':project.color,'clipPath':cut}}><small>{project.id} // {project.language}</small><h3>{project.title}</h3><p>{project.description}</p><span>{project.type}</span><b>{String(i+1).padStart(2,'0')}</b><ArrowUpRight className="node-arrow" /></a>)}</div>
+        {filtered.length === 0 && <div className="archive-empty"><Code2 /><h3>No matching projects</h3><p>Try another keyword or explore the complete archive.</p><button onClick={() => { setQuery(''); setLanguage('All'); }}>RESET FILTERS <ArrowRight /></button></div>}
       </Section>
 
       <Section id="contact" index={6} eyebrow="FINAL TRANSMISSION" className="contact-chapter" active={active === 6} direction={direction}>
         <p className="pre-manifesto">THE FUTURE IS NOT PREDICTED.</p><h2 className="manifesto" aria-label={manifestoText}>{[...manifestoText].map((char,i)=><span aria-hidden="true" key={`${char}-${i}`} className={char===' '?'space':''} style={{'--d':`${8+i%4*.8}s`,'--delay':`${-i*.73}s`}}>{char===' '?'\u00a0':char}</span>)}</h2>
-        <p className="contact-lead">Have an ambitious AI, frontend or full-stack project? Establish a direct uplink.</p>
+        <p className="contact-lead">Have an ambitious AI, frontend or full-stack project? Let's turn a clear problem into a thoughtfully engineered product.</p>
+        <div className="collaboration-brief"><div><small>01 / CHOOSE YOUR DIRECTION</small><h3>What are we building?</h3></div><div className="brief-options">{['AI & automation', 'Web platform', 'Creative interface'].map(value => <button key={value} aria-pressed={brief === value} onClick={() => setBrief(value)}>{value}<ArrowUpRight /></button>)}</div><p>{brief === 'AI & automation' ? 'Agent workflows, knowledge retrieval and intelligent features connected to your product.' : brief === 'Web platform' ? 'Responsive frontend, application architecture and data integration built around your users.' : 'Interactive worlds, expressive design systems and memorable Three.js experiences.'}</p><a href={`https://t.me/ARGHN23?text=${encodeURIComponent(`Hi Amirreza, I would like to discuss a ${brief.toLowerCase()} project.\nGoal: \nCurrent stage: \nTimeline: `)}`} target="_blank" rel="noreferrer">DISCUSS THIS PROJECT <Send /></a><small>Opens Telegram with an editable project brief.</small></div>
         <div className="contact-grid"><a href="tel:+989152389023"><Phone /><span><small>DIRECT LINE</small>+98 915 238 9023</span></a><a href="https://t.me/ARGHN23" target="_blank" rel="noreferrer"><Send /><span><small>TELEGRAM</small>@ARGHN23</span></a><a href="https://www.instagram.com/amir_.gh23" target="_blank" rel="noreferrer"><Instagram /><span><small>INSTAGRAM</small>@amir_.gh23</span></a></div>
         <div className="social-row"><a href="https://github.com/Amirgh23" target="_blank" rel="noreferrer"><Github /> GITHUB</a><a href="https://www.linkedin.com/in/amirreza-ghaffarian-nokhodi-55371020b" target="_blank" rel="noreferrer"><Linkedin /> LINKEDIN</a></div>
         <footer>© 2026 AMIRGH23 // MER23LIN NEURAL FACILITY</footer>
