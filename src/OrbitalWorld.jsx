@@ -74,6 +74,17 @@ function Station({ active, reduced }) {
   </group>;
 }
 
+function OrbitalPaths({ reduced, mobile }) {
+  const rig = useRef();
+  useFrame((_, delta) => { if (!reduced && rig.current) rig.current.rotation.z += delta * .015; });
+  return <group ref={rig} position={[8, -5, -25]} rotation={[1.1, .25, -.35]}>
+    {[12.4, 14.1, 16.2].slice(0, mobile ? 1 : 3).map((radius, index) => <group key={radius} rotation={[index * .18, index * .12, 0]}>
+      <mesh><torusGeometry args={[radius, .012, 4, mobile ? 100 : 180]} /><meshBasicMaterial color="#74cbe8" transparent opacity={.18 - index * .035} depthWrite={false} /></mesh>
+      <mesh position={[radius, 0, 0]}><sphereGeometry args={[.09, 8, 8]} /><meshBasicMaterial color="#f1b77a" toneMapped={false} /></mesh>
+    </group>)}
+  </group>;
+}
+
 function Relay({ position, scale = 1, reduced }) {
   const ref = useRef();
   useFrame((_, delta) => { if (!reduced) ref.current.rotation.y += delta * .06; });
@@ -133,6 +144,7 @@ export default function OrbitalWorld({ active, reduced, travel, mobile }) {
       <directionalLight position={[9, -2, -5]} color="#458dde" intensity={2.5} />
       <Starfield mobile={mobile} reduced={reduced} />
       <Planet reduced={reduced} mobile={mobile} />
+      <OrbitalPaths reduced={reduced} mobile={mobile} />
       <Suspense fallback={null}><Station active={active} reduced={reduced} /></Suspense>
       <Relay position={[-7, 3, -12]} scale={.6} reduced={reduced} />
       {!mobile && <Relay position={[11, 4, -21]} scale={.45} reduced={reduced} />}

@@ -356,6 +356,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
     <World active={active} reduced={reduced || scenePaused} travel={travelRef} mobile={isMobile} /><div className="noise" /><div className="scanlines" /><CursorSignal />
     <Hud active={active} menu={menu} setMenu={setMenu} navigate={navigate} cityProgress={cityProgress} />
+      <aside className="orbital-coordinate" aria-hidden="true"><span>MER23LIN / ORBITAL OBSERVATORY</span><div><i /> SECTOR {stations[active].code} <b>{stations[active].label}</b></div><small>RESEARCH · SYSTEMS · EXPERIENCE</small></aside>
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <button className="scene-pause" type="button" disabled={Boolean(reduced)} aria-pressed={scenePaused || Boolean(reduced)} onClick={() => setScenePaused(value => !value)}>{reduced ? 'REDUCED MOTION' : scenePaused ? 'RESUME SCENE' : 'PAUSE SCENE'}</button>
     <main className="console-stage" data-station={stations[active].code}>

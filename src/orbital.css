@@ -50,4 +50,6 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #b8e7
 @media(max-width:1000px){.scene-pause{top:91px;right:24px;bottom:auto;min-height:32px;font-size:8px}.hero-kicker{max-width:75%}}
 @media(max-width:760px){.flight-deck__route button{width:22px;min-width:22px}.flight-deck__route button:before{left:9px}}
 @media(max-width:760px){.hero-chapter h1{font-size:clamp(36px,9.4vw,62px)!important}.console-stage .hero-chapter .screen-dock .chapter__panel{max-height:calc(100dvh - 205px)!important}}
+.orbital-coordinate{position:fixed;right:10vw;top:23vh;z-index:2;pointer-events:none;padding-left:18px;border-left:1px solid #8cdef445;font:9px var(--font-data);letter-spacing:.12em;color:#91aabb}.orbital-coordinate>span{font-size:8px}.orbital-coordinate>div{display:flex;align-items:center;gap:10px;margin:12px 0;color:#d3eaf5}.orbital-coordinate i{width:5px;height:5px;border-radius:50%;background:#f1b77a;box-shadow:0 0 12px #f1b77a}.orbital-coordinate b{font-weight:400;color:#8cdef4}.orbital-coordinate small{font-size:7px;color:#7893a6}
+@media(max-width:1000px){.orbital-coordinate{display:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
