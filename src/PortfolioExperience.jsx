@@ -7,7 +7,6 @@ import {
   Instagram, Linkedin, Menu, Phone, Send, SkipBack, SkipForward, Terminal as TerminalIcon, Volume2, VolumeX, X,
 } from 'lucide-react';
 import * as THREE from 'three';
-import SpatialGallery from './SpatialGallery';
 
 const cut = 'polygon(0 0,calc(100% - 26px) 0,100% 26px,100% calc(100% - 16px),calc(100% - 16px) 100%,26px 100%,0 calc(100% - 26px))';
 const stations = [
@@ -416,7 +415,7 @@ function JourneyWorld({ active, reduced, travel }) {
 }
 
 function Facility({ active, reduced, travel }) {
-  return <SpatialGallery active={active} reduced={reduced} travel={travel} />;
+  return <JourneyWorld active={active} reduced={reduced} travel={travel} />;
 }
 
 function World({ active, reduced, travel, mobile }) {
