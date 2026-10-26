@@ -25,7 +25,7 @@ void main(){float rim=pow(1.-abs(normalize(vNormal).z),3.5);gl_FragColor=vec4(.1
 const coreFragment = `uniform float time; varying vec3 vPosition; varying vec3 vNormal;
 void main(){vec2 p=vPosition.xy;float r=length(p);float a=atan(p.y,p.x);
 float spiral=sin(a*7.+r*16.-time*1.4)*.5+.5;
-float filaments=pow(spiral,18.)*smoothstep(2.5,.15,r);
+float filaments=pow(spiral,18.)*(1.-smoothstep(.15,2.5,r));
 float rim=pow(max(0.,1.-abs(normalize(vNormal).z)),2.);
 vec3 color=mix(vec3(.01,.025,.055),vec3(.02,.65,.95),filaments*.8+rim*.7);
 color+=vec3(.7,.9,1.)*pow(max(0.,1.-r/1.5),8.);
