@@ -5,6 +5,7 @@ import {
   Instagram, Linkedin, Menu, Phone, Send, SkipBack, SkipForward, Terminal as TerminalIcon, Volume2, VolumeX, X,
 } from 'lucide-react';
 import OrbitalWorld from './OrbitalWorld';
+import { SHOT_LABELS } from './cameraRoute';
 
 const cut = 'polygon(0 0,calc(100% - 26px) 0,100% 26px,100% calc(100% - 16px),calc(100% - 16px) 100%,26px 100%,0 calc(100% - 26px))';
 const stations = [
@@ -39,8 +40,8 @@ function BootSequence({ done }) {
   </motion.div>;
 }
 
-function World({ active, reduced, travel, mobile }) {
-  return <OrbitalWorld active={active} reduced={reduced} travel={travel} mobile={mobile} />;
+function World({ active, reduced, paused, travel, mobile, cinema }) {
+  return <OrbitalWorld active={active} reduced={reduced} paused={paused} travel={travel} mobile={mobile} cinema={cinema} />;
 }
 
 function CyberAudioToggle() {
@@ -125,7 +126,7 @@ function Hud({ active, menu, setMenu, navigate, cityProgress }) {
       <div className="flight-deck__route" role="progressbar" aria-label="City journey progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(cityProgress * 100)} style={{ '--route-progress': cityProgress }}><span className="flight-deck__runner" style={{ left: `calc(${cityProgress * 100}% + ${9 * (1 - 2 * cityProgress)}px)` }} />{stations.map((item, index) => <button key={item.id} className={index === active ? 'active' : index < active ? 'passed' : ''} onClick={() => navigate(index)} aria-label={`Open ${item.label}`} />)}</div>
       <div className="flight-deck__percent">{String(Math.round(cityProgress * 100)).padStart(2, '0')}%<small>NODE {String(active + 1).padStart(2, '0')} / {String(stations.length).padStart(2, '0')}</small></div>
       <button className="flight-deck__step" onClick={() => navigate(active + 1)} disabled={active === stations.length - 1} aria-label="Next station"><ArrowRight /></button>
-      <div className="flight-deck__keys">SCROLL: PANEL → EDGE → SNAP DRIVE</div>
+      <div className="flight-deck__keys">SCROLL / SWIPE TO FLY</div>
     </div>
   </>;
 }
@@ -160,9 +161,9 @@ function Section({ id, index, eyebrow, title, side = 'left', children, className
   </div>;
   if (mobile) return active ? <section id={id} className={`chapter chapter--${side} ${className} is-console-active mobile-static-section`} data-index={index} style={{ '--screen': screenColors[index] }}>{panel}</section> : null;
   const variants = reduceMotion || mobile ? { enter: { opacity: 1 }, center: { opacity: 1 }, exit: { opacity: 0 } } : {
-    enter: (way) => ({ opacity: 0, scale: .72, rotateY: way * -12, x: way * 170, filter: 'blur(14px)' }),
-    center: { opacity: 1, scale: 1, rotateY: 0, x: 0, filter: 'blur(0px)' },
-    exit: (way) => ({ opacity: 0, scale: 1.16, rotateY: way * 8, x: way * -120, filter: 'blur(12px)' }),
+    enter: () => ({ opacity: 0, y: 24, filter: 'blur(5px)' }),
+    center: { opacity: 1, y: 0, filter: 'blur(0px)' },
+    exit: () => ({ opacity: 0, y: -16, filter: 'blur(5px)' }),
   };
   return <AnimatePresence mode="sync" custom={direction}>{active && <motion.section key={id} id={id} className={`chapter chapter--${side} ${className} is-console-active`} data-index={index} style={{ '--screen': screenColors[index] }} custom={direction} variants={variants} initial={mobile ? false : 'enter'} animate="center" exit="exit" transition={{ type: 'spring', stiffness: 145, damping: 24, mass: .72, opacity: { duration: .24 }, filter: { duration: .3 } }}>
     {panel}
@@ -199,10 +200,11 @@ function Terminal({ open, close, projects }) {
 
 export default function PortfolioExperience({ projects, featuredProjects, skillGroups, experience, manifestoText }) {
   const [scenePaused, setScenePaused] = useState(false);
+  const [cinema, setCinema] = useState(true);
   const [language, setLanguage] = useState('All'), [brief, setBrief] = useState('AI & automation');
   const [booted, setBooted] = useState(false), [menu, setMenu] = useState(false), [terminal, setTerminal] = useState(false), [query, setQuery] = useState(''), [active, setActive] = useState(0), [direction, setDirection] = useState(1), [cityProgress, setCityProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(() => matchMedia('(max-width: 760px)').matches);
-  const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null), snapTimer = useRef(null), routeTarget = useRef(null), scrollAnimation = useRef(null), wheelIntent = useRef(0), wheelResetTimer = useRef(null); const reduced = useReducedMotion();
+  const activeRef = useRef(0), travelRef = useRef(0), touchStart = useRef(null), routeTarget = useRef(null), scrollAnimation = useRef(null); const reduced = useReducedMotion();
   const filtered = projects.filter(p => (language === 'All' || p.language === language) && `${p.title} ${p.type} ${p.language} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
   useEffect(() => {
     const media = matchMedia('(max-width: 760px)');
@@ -224,22 +226,14 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
   const driveToCheckpoint = (next, announce = true) => {
     const bounded = Math.max(0, Math.min(stations.length - 1, next));
     const checkpoint = bounded / (stations.length - 1);
-    clearTimeout(snapTimer.current);
     scrollAnimation.current?.stop();
-    if (isMobile) {
-      routeTarget.current = null;
-      travelRef.current = checkpoint;
-      setCityProgress(checkpoint);
-      setStation(bounded);
-      return;
-    }
     routeTarget.current = bounded;
     if (announce) setStation(bounded);
     const updateRoute = (progress) => {
       travelRef.current = progress;
       setCityProgress(progress);
       const maxScroll = document.documentElement.scrollHeight - innerHeight;
-      scrollTo({ top: maxScroll * progress, behavior: 'instant' });
+      if (!isMobile) scrollTo({ top: maxScroll * progress, behavior: 'instant' });
     };
     if (reduced) {
       updateRoute(checkpoint);
@@ -249,7 +243,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     }
     const distance = Math.abs(checkpoint - travelRef.current);
     scrollAnimation.current = animate(travelRef.current, checkpoint, {
-      duration: .52 + distance * .58,
+      duration: 1.7 + distance * 2.4,
       ease: [.22, 1, .36, 1],
       onUpdate: updateRoute,
       onComplete: () => {
@@ -276,24 +270,18 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
       if (routeTarget.current == null && nextStation !== activeRef.current) {
         setStation(nextStation);
       }
-      clearTimeout(snapTimer.current);
-      if (!reduced && routeTarget.current == null) snapTimer.current = setTimeout(() => {
-        const nearestStation = Math.round(travelRef.current * (stations.length - 1));
-        const checkpoint = nearestStation / (stations.length - 1);
-        if (Math.abs(travelRef.current - checkpoint) < .006) return;
-        driveToCheckpoint(nearestStation, false);
-      }, 220);
+
     };
     requestAnimationFrame(() => {
       scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * initialProgress, behavior: 'auto' });
       syncCityToScroll();
     });
     addEventListener('scroll', syncCityToScroll, { passive: true });
-    return () => { clearTimeout(snapTimer.current); scrollAnimation.current?.stop(); removeEventListener('scroll', syncCityToScroll); };
+    return () => { scrollAnimation.current?.stop(); removeEventListener('scroll', syncCityToScroll); };
   }, [reduced, isMobile]);
   useEffect(() => {
     const onKey = (event) => {
-      if (event.target.matches('input') || terminal) return;
+      if (event.target.matches('input,textarea,select') || terminal || !booted || scenePaused) return;
       const key = event.key.toLowerCase();
       if (!['j', 'k', 'arrowright', 'arrowleft', 'pagedown', 'pageup'].includes(key)) return;
       event.preventDefault();
@@ -301,63 +289,47 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     };
     const onWheel = (event) => {
       if (terminal && event.target.closest('.terminal')) return;
-      const nested = event.target.closest('.node-grid,.terminal__lines');
-      const panel = event.target.closest('.chapter__panel');
-      const scrollSurfaces = [nested, panel].filter((surface, index, list) => surface && list.indexOf(surface) === index);
-      const canScrollSurface = scrollSurfaces.some((surface) => {
-        if (surface.scrollHeight <= surface.clientHeight + 2) return false;
-        return event.deltaY > 0
-          ? surface.scrollTop + surface.clientHeight < surface.scrollHeight - 2
-          : surface.scrollTop > 2;
-      });
-      if (canScrollSurface) {
-        wheelIntent.current = 0;
-        clearTimeout(wheelResetTimer.current);
-        return;
-      }
+      if (!booted || scenePaused || terminal) { event.preventDefault(); return; }
+      const panel = !cinema && event.target.closest('.chapter__panel,.node-grid');
+      if (panel && panel.scrollHeight > panel.clientHeight + 2 && (event.deltaY > 0 ? panel.scrollTop + panel.clientHeight < panel.scrollHeight - 2 : panel.scrollTop > 2)) return;
+      scrollAnimation.current?.stop(); routeTarget.current = null;
+      // Native document scrolling scrubs the entire camera route, without snapping.
+      if (!isMobile) return;
       event.preventDefault();
-      if (routeTarget.current != null) return;
-      const deltaUnit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1;
-      wheelIntent.current += event.deltaY * deltaUnit;
-      clearTimeout(wheelResetTimer.current);
-      wheelResetTimer.current = setTimeout(() => { wheelIntent.current = 0; }, 160);
-      if (Math.abs(wheelIntent.current) < 36) return;
-      const nextStation = Math.max(0, Math.min(stations.length - 1, activeRef.current + Math.sign(wheelIntent.current)));
-      wheelIntent.current = 0;
-      if (nextStation !== activeRef.current) navigate(nextStation);
+      const progress = Math.max(0, Math.min(1, travelRef.current + event.deltaY / 6000));
+      travelRef.current = progress; setCityProgress(progress); setStation(Math.round(progress * 6));
     };
     const onTouchStart = (event) => {
       const touch = event.touches[0];
       const panel = event.target.closest('.chapter__panel');
       touchStart.current = touch ? { x: touch.clientX, y: touch.clientY, panel, scrollTop: panel?.scrollTop || 0, scrollHeight: panel?.scrollHeight || 0, clientHeight: panel?.clientHeight || 0 } : null;
     };
-    const onTouchEnd = (event) => {
-      const start = touchStart.current;
-      const touch = event.changedTouches[0];
-      if (!start || !touch) return;
-      const deltaX = start.x - touch.clientX;
-      const deltaY = start.y - touch.clientY;
-      if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 42) { touchStart.current = null; return; }
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        navigate(activeRef.current + (deltaX > 0 ? 1 : -1));
-      } else {
-        const canKeepScrolling = start.panel && start.scrollHeight > start.clientHeight + 2 && (deltaY > 0
-          ? start.scrollTop + start.clientHeight < start.scrollHeight - 2
-          : start.scrollTop > 2);
-        if (!canKeepScrolling) navigate(activeRef.current + (deltaY > 0 ? 1 : -1));
-      }
-      touchStart.current = null;
+    const onTouchMove = (event) => {
+      const start = touchStart.current, touch = event.touches[0];
+      if (!start || !touch || !isMobile) return;
+      if (!booted || scenePaused || terminal) { event.preventDefault(); return; }
+      const delta = start.y - touch.clientY;
+      const panel = !cinema && start.panel;
+      if (panel && panel.scrollHeight > panel.clientHeight + 2 && (delta > 0 ? panel.scrollTop + panel.clientHeight < panel.scrollHeight - 2 : panel.scrollTop > 2)) { start.y = touch.clientY; return; }
+      event.preventDefault(); scrollAnimation.current?.stop(); routeTarget.current = null;
+      const progress = Math.max(0, Math.min(1, travelRef.current + delta / 2800));
+      travelRef.current = progress; setCityProgress(progress); setStation(Math.round(progress * 6));
+      start.y = touch.clientY;
     };
+    const onTouchEnd = () => { touchStart.current = null; };
     addEventListener('keydown', onKey); addEventListener('wheel', onWheel, { passive: false });
+    addEventListener('touchmove', onTouchMove, { passive: false });
     addEventListener('touchstart', onTouchStart, { passive: true }); addEventListener('touchend', onTouchEnd, { passive: true });
-    return () => { clearTimeout(wheelResetTimer.current); removeEventListener('keydown', onKey); removeEventListener('wheel', onWheel); removeEventListener('touchstart', onTouchStart); removeEventListener('touchend', onTouchEnd); };
-  }, [terminal]);
-  return <><div className={`experience-shell nexus-experience ${active === 0 ? 'is-entry' : ''}`}>
+    return () => { removeEventListener('keydown', onKey); removeEventListener('wheel', onWheel); removeEventListener('touchmove', onTouchMove); removeEventListener('touchstart', onTouchStart); removeEventListener('touchend', onTouchEnd); };
+  }, [terminal, booted, isMobile, cinema, scenePaused]);
+  return <><div className={`experience-shell nexus-experience film-experience ${cinema ? 'is-cinema' : ''} ${active === 0 ? 'is-entry' : ''}`}>
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
-    <World active={active} reduced={reduced || scenePaused} travel={travelRef} mobile={isMobile} /><div className="noise" /><div className="scanlines" /><CursorSignal />
+    <World active={active} reduced={reduced} paused={scenePaused} travel={travelRef} mobile={isMobile} cinema={cinema} /><div className="noise" /><div className="scanlines" /><CursorSignal />
     <Hud active={active} menu={menu} setMenu={setMenu} navigate={navigate} cityProgress={cityProgress} />
       <aside className="orbital-coordinate" aria-hidden="true"><span>MER23LIN / ORBITAL OBSERVATORY</span><div><i /> SECTOR {stations[active].code} <b>{stations[active].label}</b></div><small>RESEARCH · SYSTEMS · EXPERIENCE</small></aside>
     {active === 0 && <div className="artifact-nodes" aria-label="Explore the intelligence engine"><span className="artifact-nodes__index">FIG. 001 / THE NEXUS</span><button onClick={() => navigate(1)}><span>01</span><b>ENGINEERED SYSTEMS<small>EXPLORE SELECTED WORK</small></b><ArrowUpRight /></button><button onClick={() => navigate(3)}><span>02</span><b>NEURAL ARCHITECTURE<small>DISCOVER THE STACK</small></b><ArrowUpRight /></button><div className="artifact-nodes__status"><i /><span>CORE STABLE</span><b>23.06 / ONLINE</b></div></div>}
+    <button className="cinema-toggle" type="button" aria-pressed={cinema} onClick={() => setCinema(value => !value)}>{cinema ? 'READ PORTFOLIO' : 'VIEW FULL SCENE'} <ArrowUpRight /></button>
+    {cinema && <div className="film-caption"><span>MER23LIN / THE OBSERVATORY</span><h1>{SHOT_LABELS[active]}</h1><p>A continuous journey through engineered intelligence.</p><small>SCROLL TO FLY / {String(active + 1).padStart(2, '0')} OF 07</small></div>}
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <button className="scene-pause" type="button" disabled={Boolean(reduced)} aria-pressed={scenePaused || Boolean(reduced)} onClick={() => setScenePaused(value => !value)}>{reduced ? 'REDUCED MOTION' : scenePaused ? 'RESUME SCENE' : 'PAUSE SCENE'}</button>
     <main className="console-stage" data-station={stations[active].code}>
