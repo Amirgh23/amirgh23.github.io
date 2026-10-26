@@ -269,7 +269,7 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     const syncCityToScroll = () => {
       if (isMobile) return;
       const maxScroll = document.documentElement.scrollHeight - innerHeight;
-      const nextProgress = maxScroll > 0 ? THREE.MathUtils.clamp(scrollY / maxScroll, 0, 1) : 0;
+      const nextProgress = maxScroll > 0 ? Math.max(0, Math.min(1, scrollY / maxScroll)) : 0;
       travelRef.current = nextProgress;
       setCityProgress(nextProgress);
       const nextStation = Math.round(nextProgress * (stations.length - 1));
@@ -352,18 +352,19 @@ export default function PortfolioExperience({ projects, featuredProjects, skillG
     addEventListener('touchstart', onTouchStart, { passive: true }); addEventListener('touchend', onTouchEnd, { passive: true });
     return () => { clearTimeout(wheelResetTimer.current); removeEventListener('keydown', onKey); removeEventListener('wheel', onWheel); removeEventListener('touchstart', onTouchStart); removeEventListener('touchend', onTouchEnd); };
   }, [terminal]);
-  return <><div className="experience-shell">
+  return <><div className={`experience-shell nexus-experience ${active === 0 ? 'is-entry' : ''}`}>
     <AnimatePresence>{!booted && <BootSequence done={() => setBooted(true)} />}</AnimatePresence>
     <World active={active} reduced={reduced || scenePaused} travel={travelRef} mobile={isMobile} /><div className="noise" /><div className="scanlines" /><CursorSignal />
     <Hud active={active} menu={menu} setMenu={setMenu} navigate={navigate} cityProgress={cityProgress} />
       <aside className="orbital-coordinate" aria-hidden="true"><span>MER23LIN / ORBITAL OBSERVATORY</span><div><i /> SECTOR {stations[active].code} <b>{stations[active].label}</b></div><small>RESEARCH · SYSTEMS · EXPERIENCE</small></aside>
+    {active === 0 && <div className="artifact-nodes" aria-label="Explore the intelligence engine"><span className="artifact-nodes__index">FIG. 001 / THE NEXUS</span><button onClick={() => navigate(1)}><span>01</span><b>ENGINEERED SYSTEMS<small>EXPLORE SELECTED WORK</small></b><ArrowUpRight /></button><button onClick={() => navigate(3)}><span>02</span><b>NEURAL ARCHITECTURE<small>DISCOVER THE STACK</small></b><ArrowUpRight /></button><div className="artifact-nodes__status"><i /><span>CORE STABLE</span><b>23.06 / ONLINE</b></div></div>}
     <button className="terminal-trigger" onClick={() => setTerminal(true)}><TerminalIcon /> OPEN TERMINAL</button>
     <button className="scene-pause" type="button" disabled={Boolean(reduced)} aria-pressed={scenePaused || Boolean(reduced)} onClick={() => setScenePaused(value => !value)}>{reduced ? 'REDUCED MOTION' : scenePaused ? 'RESUME SCENE' : 'PAUSE SCENE'}</button>
     <main className="console-stage" data-station={stations[active].code}>
       <Section id="entry" index={0} eyebrow="TRANSMISSION 001 / FROM RESEARCH TO REALITY" className="hero-chapter" active={active === 0} direction={direction}>
         <div className="hero-kicker"><i /> AVAILABLE FOR SELECT COLLABORATIONS</div>
-        <div className="identity-line">AMIRREZA GHAFFARIAN <span>ENGINEER / CREATIVE TECHNOLOGIST</span></div>
-        <h1>INTELLIGENCE.<br />ENGINEERED<br /><em>BEYOND LIMITS.</em></h1>
+        <div className="identity-line">AMIRREZA GHAFFARIAN <span>AI ENGINEER / CREATIVE TECHNOLOGIST</span></div>
+        <h1>BUILDING<br />THE NEXT<br /><em>INTELLIGENCE.</em></h1>
         <p className="hero-lead">AI agents, full-stack systems and high-impact interfaces engineered from research core to production surface.</p>
         <div className="hero-cta"><a href="#featured" onClick={(event) => { event.preventDefault(); navigate(1); }}>EXPLORE MY WORK <ArrowRight /></a><a href="#contact" onClick={(event) => { event.preventDefault(); navigate(6); }}>MAKE CONTACT <Send /></a></div>
         <div className="hero-stats"><div><b>10</b><span>YEARS PROGRAMMING</span></div><div><b>7</b><span>YEARS FRONTEND</span></div><div><b>7</b><span>YEARS AI</span></div><div><b>15+</b><span>COMPANY COLLABS</span></div></div>
